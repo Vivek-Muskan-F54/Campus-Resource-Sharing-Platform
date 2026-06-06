@@ -1,10 +1,12 @@
-import api from './client'
+import api, { authClient } from './client'
 
 export const authApi = {
-  login: d => api.post('/auth/login', d),
-  register: d => api.post('/auth/register', d),
-  refresh: d => api.post('/auth/refresh', d),
-  logout: d => api.post('/auth/logout', d),
+  // login / register / refresh / logout all go through the interceptor-free
+  // authClient so they can never trigger a recursive refresh loop.
+  login:   d => authClient.post('/auth/login',   d),
+  register: d => authClient.post('/auth/register', d),
+  refresh: d => authClient.post('/auth/refresh', d),
+  logout:  d => authClient.post('/auth/logout',  d),
 }
 
 export const listingApi = {
