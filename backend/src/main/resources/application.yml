@@ -30,3 +30,25 @@ cloudinary:
   api-secret: ${CLOUDINARY_API_SECRET:demo}
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
+
+# ── Logging ─────────────────────────────────────────────────────────────────────
+logging:
+  level:
+    root: INFO
+    com.campusshare: INFO
+    # Reduce noise from third-party libraries
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.orm.jdbc.bind: WARN
+    com.cloudinary: WARN
+  pattern:
+    # Structured log line: timestamp | level | thread | logger (short) | message
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%t] %-40.40logger{39} : %m%n"
+    file:    "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%t] %-40.40logger{39} : %m%n"
+  # Uncomment to persist logs to a rolling file in production:
+  # file:
+  #   name: logs/campusshare.log
+  # logback:
+  #   rollingpolicy:
+  #     max-file-size: 50MB
+  #     max-history: 30

@@ -1,6 +1,7 @@
 package com.campusshare.service.impl;
 
 import com.campusshare.common.BadRequestException;
+import com.campusshare.common.FileValidationUtil;
 import com.campusshare.common.ResourceNotFoundException;
 import com.campusshare.domain.Enums.ModerationStatus;
 import com.campusshare.domain.Note;
@@ -14,6 +15,8 @@ import com.campusshare.repository.UserRepository;
 import com.campusshare.service.NoteService;
 import com.campusshare.service.StorageService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @Transactional
 public class NoteServiceImpl implements NoteService {
+
+    private static final Logger log = LoggerFactory.getLogger(NoteServiceImpl.class);
     private static final String PDF_CONTENT_TYPE = "application/pdf";
+
+    // 50 MB cap for note PDFs
+    private static final long MAX_NOTE_SIZE = 50L * 1024 * 1024;
 
     private final NoteRepository notes;
     private final UserRepository users;
@@ -32,37 +40,48 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<NoteResponse> search(String query, String branch, Integer semester, String subject, Pageable pageable) {
-        return notes.search(blank(query), blank(branch), semester, blank(subject), ModerationStatus.APPROVED, pageable)
+    public Page<NoteResponse> search(String query, String branch, Integer semester,
+                                     String subject, Pageable pageable) {
+        return notes.search(blank(query), blank(branch), semester, blank(subject),
+                        ModerationStatus.APPROVED, pageable)
                 .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<NoteResponse> adminSearch(String query, String branch, Integer semester, String subject, ModerationStatus status, Pageable pageable) {
-        return notes.search(blank(query), blank(branch), semester, blank(subject), status, pageable)
+    public Page<NoteResponse> adminSearch(String query, String branch, Integer semester,
+                                          String subject, ModerationStatus status,
+                                          Pageable pageable) {
+        return notes.search(blank(query), blank(branch), semester, blank(subject),
+                        status, pageable)
                 .map(this::toResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
     public NoteResponse getById(Long noteId) {
-        Note note = findApprovedNote(noteId);
-        return toResponse(note);
+        return toResponse(findApprovedNote(noteId));
     }
 
     @Override
     public NoteResponse uploadPdf(String email, NoteCreateRequest request, MultipartFile file) {
-        validatePdf(file);
+        // Validate: type, magic bytes, size
+        FileValidationUtil.validatePdf(file, MAX_NOTE_SIZE);
+
+        String safeFilename = FileValidationUtil.sanitiseFilename(file.getOriginalFilename());
         StorageUploadResult uploaded = storage.upload(file, "campus-share/notes", "auto");
 
         Note note = buildBaseNote(email, request);
         note.setFileUrl(uploaded.url());
         note.setPublicId(uploaded.publicId());
-        note.setOriginalFilename(file.getOriginalFilename());
-        note.setContentType(file.getContentType());
+        note.setOriginalFilename(safeFilename);
+        note.setContentType(PDF_CONTENT_TYPE);
         note.setFileSize(uploaded.bytes() > 0 ? uploaded.bytes() : file.getSize());
-        return toResponse(notes.save(note));
+
+        Note saved = notes.save(note);
+        log.info("Note uploaded: id={} uploader={} filename={} size={}",
+                saved.getId(), email, safeFilename, saved.getFileSize());
+        return toResponse(saved);
     }
 
     @Override
@@ -70,10 +89,16 @@ public class NoteServiceImpl implements NoteService {
         if (request.fileUrl() == null || request.fileUrl().isBlank()) {
             throw new BadRequestException("fileUrl is required when creating note metadata");
         }
+        if (!request.fileUrl().startsWith("https://")) {
+            throw new BadRequestException("fileUrl must be a secure HTTPS URL");
+        }
         Note note = buildBaseNote(email, request);
         note.setFileUrl(request.fileUrl());
         note.setContentType(PDF_CONTENT_TYPE);
-        return toResponse(notes.save(note));
+
+        Note saved = notes.save(note);
+        log.info("Note metadata created: id={} uploader={}", saved.getId(), email);
+        return toResponse(saved);
     }
 
     @Override
@@ -94,8 +119,12 @@ public class NoteServiceImpl implements NoteService {
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
         note.setStatus(request.status());
         note.setModerationRemarks(request.remarks());
-        return toResponse(notes.save(note));
+        Note saved = notes.save(note);
+        log.info("Note moderated: id={} status={}", noteId, request.status());
+        return toResponse(saved);
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private Note buildBaseNote(String email, NoteCreateRequest request) {
         User uploader = users.findByEmail(email)
@@ -116,17 +145,6 @@ public class NoteServiceImpl implements NoteService {
             throw new ResourceNotFoundException("Note not found");
         }
         return note;
-    }
-
-    private void validatePdf(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BadRequestException("PDF file is required");
-        }
-        String filename = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase();
-        boolean pdfContentType = PDF_CONTENT_TYPE.equalsIgnoreCase(file.getContentType());
-        if (!pdfContentType && !filename.endsWith(".pdf")) {
-            throw new BadRequestException("Only PDF notes are allowed");
-        }
     }
 
     private String blank(String value) {

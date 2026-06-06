@@ -10,6 +10,8 @@ import com.campusshare.repository.UserRepository;
 import com.campusshare.security.JwtUtil;
 import com.campusshare.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class AuthServiceImpl implements AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository users;
     private final RefreshTokenRepository refreshTokens;
     private final PasswordEncoder passwordEncoder;
@@ -53,16 +57,26 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setCollegeRollNumber(request.collegeRollNumber().trim());
-        return createTokenResponse(users.save(user));
+        User saved = users.save(user);
+        log.info("AUTH register: userId={} email={}", saved.getId(), email);
+        return createTokenResponse(saved);
     }
 
     @Override
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.email());
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, request.password()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.password()));
+        } catch (Exception ex) {
+            // Log the failure without the password; re-throw so the
+            // GlobalExceptionHandler returns the correct 401 response.
+            log.warn("AUTH login failed: email={} reason={}", email, ex.getClass().getSimpleName());
+            throw ex;
+        }
         User user = users.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
+        log.info("AUTH login: userId={} email={}", user.getId(), email);
         return createTokenResponse(user);
     }
 
@@ -88,10 +102,13 @@ public class AuthServiceImpl implements AuthService {
 
             storedToken.setRevoked(true);
             refreshTokens.save(storedToken);
+            log.info("AUTH token_refresh: userId={} email={}", storedToken.getUser().getId(), email);
             return createTokenResponse(storedToken.getUser());
         } catch (TokenRefreshException exception) {
+            log.warn("AUTH token_refresh failed: reason={}", exception.getMessage());
             throw exception;
         } catch (Exception exception) {
+            log.warn("AUTH token_refresh error: {}", exception.getClass().getSimpleName());
             throw new TokenRefreshException("Invalid or expired refresh token");
         }
     }
@@ -101,6 +118,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokens.findByTokenHash(hash(request.refreshToken())).ifPresent(token -> {
             token.setRevoked(true);
             refreshTokens.save(token);
+            log.info("AUTH logout: userId={}", token.getUser().getId());
         });
     }
 
