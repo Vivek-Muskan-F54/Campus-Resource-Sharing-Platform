@@ -12,6 +12,7 @@ import org.springframework.web.socket.config.annotation.*;
 @EnableWebSocketMessageBroker
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
     private final WebSocketAuthChannelInterceptor authChannelInterceptor;
 
     @Value("${cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
@@ -23,9 +24,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setApplicationDestinationPrefixes("/app");
         registry.setUserDestinationPrefix("/user");
     }
-
-    @Value("${cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
-    private String allowedOrigins;
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
