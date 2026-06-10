@@ -12,24 +12,13 @@ database/   MySQL 8 schema and ER diagram description
 
 ## Run locally
 
-1. Start MySQL:
+1. Start the full stack with Docker:
    ```bash
-   docker compose up -d
+   docker compose up --build
    ```
-2. Copy `backend/.env.example` to `backend/.env`, then set the database, JWT, Cloudinary, and admin values before starting the API.
-3. Start the API:
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
-4. Start the web app:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+2. To run the backend or frontend outside Docker, copy `backend/.env.example` to `backend/.env`, then set the database, JWT, Cloudinary, and admin values before starting the API.
 
-The frontend runs at `http://localhost:5173`, the API at `http://localhost:8080`, and Swagger UI at `http://localhost:8080/swagger-ui/index.html`.
+The frontend runs at `http://localhost`, the API at `http://localhost:8080`, and Swagger UI at `http://localhost:8080/swagger-ui/index.html`.
 
 The development admin account is configured through `APP_ADMIN_EMAIL` and `APP_ADMIN_PASSWORD`.
 The backend environment variable reference lives in `backend/ENVIRONMENT_VARIABLES.md`.
