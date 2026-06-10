@@ -16,7 +16,7 @@ database/   MySQL 8 schema and ER diagram description
    ```bash
    docker compose up -d
    ```
-2. Configure Cloudinary and JWT values from `backend/.env.example` in your shell or IDE.
+2. Copy `backend/.env.example` to `backend/.env`, then set the database, JWT, Cloudinary, and admin values before starting the API.
 3. Start the API:
    ```bash
    cd backend
@@ -31,7 +31,8 @@ database/   MySQL 8 schema and ER diagram description
 
 The frontend runs at `http://localhost:5173`, the API at `http://localhost:8080`, and Swagger UI at `http://localhost:8080/swagger-ui/index.html`.
 
-The development admin account defaults to `admin@campus.edu` / `ChangeMe123!`. Override it in every deployed environment.
+The development admin account is configured through `APP_ADMIN_EMAIL` and `APP_ADMIN_PASSWORD`.
+The backend environment variable reference lives in `backend/ENVIRONMENT_VARIABLES.md`.
 
 The normalized database design is documented in `database/schema.sql` and `database/ER_DIAGRAM.md`.
 The production deployment checklist lives in `DEPLOYMENT_GUIDE.md`.
@@ -63,5 +64,6 @@ Access tokens default to 15 minutes and refresh tokens default to 7 days. Config
 - Use a long random `JWT_SECRET`, HTTPS, restricted CORS origins, and managed secrets.
 - Set `CORS_ALLOWED_ORIGINS` to the deployed frontend URL in production.
 - Configure Cloudinary upload presets and moderation rules.
+- Provision SMTP credentials if you enable backend email delivery.
 - Replace the in-memory WebSocket broker with a broker relay when scaling horizontally.
 - Add institution-specific email or SSO verification before enabling student accounts.

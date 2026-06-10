@@ -21,7 +21,7 @@ Set these variables in your deployment environment:
 SPRING_PROFILES_ACTIVE=prod
 DB_URL=jdbc:mysql://localhost:3306/campus_share?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 DB_USERNAME=campus_user
-DB_PASSWORD=strong-password
+DB_PASSWORD=replace-with-db-password
 JWT_SECRET=replace-with-at-least-32-bytes-random-secret
 JWT_ACCESS_EXPIRATION_MS=900000
 JWT_REFRESH_EXPIRATION_MS=604800000
@@ -30,10 +30,19 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 CORS_ALLOWED_ORIGINS=https://your-frontend-domain.com
 APP_ADMIN_EMAIL=admin@campus.edu
-APP_ADMIN_PASSWORD=ChangeMe123!
-APP_ADMIN_NAME=System Admin
-APP_ADMIN_ROLL_NUMBER=ADMIN-001
+APP_ADMIN_PASSWORD=replace-with-strong-admin-password
+MAIL_HOST=smtp.your-provider.com
+MAIL_PORT=587
+MAIL_USERNAME=your-smtp-username
+MAIL_PASSWORD=your-smtp-password
+MAIL_SMTP_AUTH=true
+MAIL_SMTP_STARTTLS_ENABLE=true
+MAIL_SMTP_CONNECTION_TIMEOUT=5000
+MAIL_SMTP_TIMEOUT=5000
+MAIL_SMTP_WRITE_TIMEOUT=5000
 ```
+
+For a complete description of each variable, see `backend/ENVIRONMENT_VARIABLES.md`.
 
 ### Frontend
 
@@ -121,4 +130,3 @@ For final year submission and placement review, include:
 - API documentation
 - Demo credentials for admin and student accounts
 - Screenshots of marketplace, notes, chat, QR verification, and admin dashboard
-
