@@ -16,6 +16,8 @@ import com.campusshare.repository.ProductRepository;
 import com.campusshare.repository.UserRepository;
 import com.campusshare.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 public class ProductServiceImpl implements ProductService {
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductRepository products;
     private final UserRepository users;
     private final CategoryRepository categories;
@@ -87,7 +90,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = new Product();
         product.setSeller(seller);
         applyRequest(product, request);
-        return toResponse(products.save(product));
+        Product saved = products.save(product);
+        log.info("event=listing_created listing_id={} seller_id={} category_id={} type={} condition={}",
+                saved.getId(), seller.getId(), saved.getCategory().getId(), saved.getType(), saved.getCondition());
+        return toResponse(saved);
     }
 
     @Override
@@ -97,7 +103,10 @@ public class ProductServiceImpl implements ProductService {
             throw new BadRequestException("Deleted products cannot be edited");
         }
         applyRequest(product, request);
-        return toResponse(products.save(product));
+        Product saved = products.save(product);
+        log.info("event=listing_updated listing_id={} seller_id={} category_id={} type={} condition={}",
+                saved.getId(), saved.getSeller().getId(), saved.getCategory().getId(), saved.getType(), saved.getCondition());
+        return toResponse(saved);
     }
 
     @Override
@@ -105,6 +114,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = findOwnedProduct(email, productId);
         product.setStatus(ListingStatus.DELETED);
         products.save(product);
+        log.info("event=listing_deleted listing_id={} seller_id={}", product.getId(), product.getSeller().getId());
     }
 
     @Override

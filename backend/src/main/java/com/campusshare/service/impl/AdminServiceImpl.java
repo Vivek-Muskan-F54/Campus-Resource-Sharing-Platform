@@ -14,6 +14,8 @@ import com.campusshare.service.AdminService;
 import com.campusshare.service.NoteService;
 import com.campusshare.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 @Transactional
 public class AdminServiceImpl implements AdminService {
+    private static final Logger log = LoggerFactory.getLogger(AdminServiceImpl.class);
     private final UserRepository users;
     private final VerificationRepository verifications;
     private final ProductRepository products;
@@ -172,6 +175,13 @@ public class AdminServiceImpl implements AdminService {
         notification.setLink("/verification");
         notifications.save(notification);
 
+        if (status == VerificationStatus.APPROVED) {
+            log.info("event=verification_approved verification_id={} student_id={} admin_id={}",
+                    verificationId, verification.getStudent().getId(), admin.getId());
+        } else if (status == VerificationStatus.REJECTED) {
+            log.info("event=verification_rejected verification_id={} student_id={} admin_id={}",
+                    verificationId, verification.getStudent().getId(), admin.getId());
+        }
         return toVerificationResponse(verifications.save(verification));
     }
 

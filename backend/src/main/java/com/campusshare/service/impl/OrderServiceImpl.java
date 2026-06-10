@@ -55,13 +55,15 @@ public class OrderServiceImpl implements OrderService {
         notify(product.getSeller(), NotificationType.ORDER,
                 "New order request for " + product.getTitle(), "/orders");
 
-        log.info("Order created: id={} product={} buyer={}", saved.getId(), productId, buyer.getId());
+        log.info("event=order_created order_id={} product_id={} buyer_id={} seller_id={}",
+                saved.getId(), productId, buyer.getId(), product.getSeller().getId());
         return toResponse(saved);
     }
 
     @Override
     public OrderResponse status(String email, Long id, String status) {
         MarketplaceOrder order = findOrder(id);
+        User actor = findUser(email);
         OrderStatus next;
         try {
             next = OrderStatus.valueOf(status.toUpperCase());
@@ -107,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
         notify(order.getBuyer(), NotificationType.ORDER,
                 "Your order status changed to " + next.name(), "/orders");
 
-        log.info("Order status updated: id={} status={} actor={}", id, next, email);
+        log.info("event=order_status_updated order_id={} status={} actor_id={}", id, next, actor.getId());
         return toResponse(orders.save(order));
     }
 
@@ -122,7 +124,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse verifyHandover(String email, String token) {
         MarketplaceOrder completed = qrVerificationService.verify(email, token);
-        log.info("QR handover completed: orderId={} actor={}", completed.getId(), email);
         return toResponse(completed);
     }
 

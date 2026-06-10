@@ -1,10 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import {
-  Search, SlidersHorizontal, Package, BookOpen, MessageCircle,
-  ShieldCheck, Star, X, TrendingUp, ArrowRight, ShoppingBag,
-  Users, FileText, Zap, ChevronDown, LayoutGrid, List,
-  SortAsc, Tag, Layers, DollarSign, RefreshCw
+  ArrowRight,
+  Bookmark,
+  BookmarkCheck,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Filter,
+  Heart,
+  LayoutGrid,
+  List,
+  PackageSearch,
+  RefreshCw,
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  Star,
+  TrendingUp,
+  X,
 } from 'lucide-react'
 import { categoryApi, listingApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
@@ -13,580 +26,826 @@ import ListingCard from '../components/ListingCard'
 import { SkeletonCard } from '../components/ui/SkeletonCard'
 import EmptyState from '../components/ui/EmptyState'
 import Badge from '../components/ui/Badge'
+import { Link } from 'react-router-dom'
 
-// ─── Constants ─────────────────────────────────────────────────────────────────
-const CONDITIONS = [
-  { value: 'NEW',      label: 'New',       color: 'emerald' },
-  { value: 'LIKE_NEW', label: 'Like New',  color: 'emerald' },
-  { value: 'GOOD',     label: 'Good',      color: 'brand'   },
-  { value: 'FAIR',     label: 'Fair',      color: 'amber'   },
-  { value: 'POOR',     label: 'Poor',      color: 'red'     },
+const PAGE_SIZE = 12
+const WISHLIST_KEY = 'campusshare_marketplace_wishlist'
+const SAVED_KEY = 'campusshare_marketplace_saved'
+const RECENT_SEARCH_KEY = 'campusshare_marketplace_recent_searches'
+
+const TYPE_OPTIONS = [
+  { value: 'SELL', label: 'For sale' },
+  { value: 'RENT', label: 'For rent' },
+  { value: 'EXCHANGE', label: 'Exchange' },
 ]
 
-const TYPES = [
-  { value: 'SELL',     label: 'For Sale',  color: 'emerald' },
-  { value: 'RENT',     label: 'For Rent',  color: 'blue'    },
-  { value: 'EXCHANGE', label: 'Exchange',  color: 'purple'  },
+const CONDITION_OPTIONS = [
+  { value: 'NEW', label: 'New' },
+  { value: 'LIKE_NEW', label: 'Like new' },
+  { value: 'GOOD', label: 'Good' },
+  { value: 'FAIR', label: 'Fair' },
+  { value: 'POOR', label: 'Poor' },
 ]
 
 const SORT_OPTIONS = [
-  { value: 'createdAt,desc', label: 'Newest first'  },
-  { value: 'price,asc',      label: 'Price: Low → High' },
-  { value: 'price,desc',     label: 'Price: High → Low' },
-  { value: 'createdAt,asc',  label: 'Oldest first'  },
-]
-
-const STATS = [
-  { icon: Users,      label: 'Students',     value: '2,400+', color: 'text-brand-500'   },
-  { icon: ShoppingBag,label: 'Listings',     value: '1,800+', color: 'text-emerald-500' },
-  { icon: FileText,   label: 'Notes Shared', value: '950+',   color: 'text-purple-500'  },
-  { icon: Zap,        label: 'Trades Done',  value: '3,200+', color: 'text-amber-500'   },
-]
-
-const FEATURES = [
-  { icon: ShoppingBag,  title: 'Campus Marketplace', desc: 'Buy, sell, rent, or exchange academic resources with verified students.',    color: 'from-brand-500 to-indigo-600'   },
-  { icon: BookOpen,     title: 'Study Notes Hub',    desc: 'Share and download curated PDF notes organised by subject and semester.',   color: 'from-emerald-500 to-teal-600'   },
-  { icon: MessageCircle,title: 'Real-time Chat',     desc: 'Message any student directly with WebSocket-powered instant messaging.',    color: 'from-purple-500 to-violet-600'  },
-  { icon: ShieldCheck,  title: 'Student Verified',   desc: 'Verify your college ID for trusted, safer campus transactions.',            color: 'from-amber-500 to-orange-600'   },
+  { value: 'createdAt,desc', label: 'Newest first', icon: Clock },
+  { value: 'price,asc', label: 'Price: low to high', icon: TrendingUp },
+  { value: 'price,desc', label: 'Price: high to low', icon: TrendingUp },
+  { value: 'createdAt,asc', label: 'Oldest first', icon: Clock },
 ]
 
 const PRICE_PRESETS = [
-  { label: 'Under ₹500',      min: '',    max: '500'  },
-  { label: '₹500 – ₹2000',   min: '500', max: '2000' },
-  { label: '₹2000 – ₹5000',  min: '2000',max: '5000' },
-  { label: 'Above ₹5000',     min: '5000',max: ''     },
+  { label: 'Under Rs. 1k', minPrice: '', maxPrice: '1000' },
+  { label: 'Rs. 1k - 5k', minPrice: '1000', maxPrice: '5000' },
+  { label: 'Rs. 5k - 10k', minPrice: '5000', maxPrice: '10000' },
+  { label: 'Above Rs. 10k', minPrice: '10000', maxPrice: '' },
 ]
 
-// ─── Filter chip ───────────────────────────────────────────────────────────────
-function FilterChip({ label, active, onClick, color = 'slate' }) {
-  const colors = {
-    emerald: active ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-emerald-400 dark:hover:border-emerald-600',
-    blue:    active ? 'bg-blue-500 text-white border-blue-500'       : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-blue-400 dark:hover:border-blue-600',
-    purple:  active ? 'bg-purple-500 text-white border-purple-500'   : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-purple-400 dark:hover:border-purple-600',
-    amber:   active ? 'bg-amber-500 text-white border-amber-500'     : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-amber-400 dark:hover:border-amber-600',
-    red:     active ? 'bg-red-500 text-white border-red-500'         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-red-400 dark:hover:border-red-600',
-    brand:   active ? 'bg-brand-500 text-white border-brand-500'     : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-brand-400 dark:hover:border-brand-600',
-    slate:   active ? 'bg-slate-700 text-white border-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:border-slate-200' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-400',
+function readIdSet(key) {
+  if (typeof window === 'undefined') return new Set()
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]')
+    return new Set((Array.isArray(value) ? value : []).map(String))
+  } catch {
+    return new Set()
   }
+}
+
+function writeIdSet(key, set) {
+  localStorage.setItem(key, JSON.stringify([...set]))
+}
+
+function readRecentSearches() {
+  if (typeof window === 'undefined') return []
+  try {
+    const value = JSON.parse(localStorage.getItem(RECENT_SEARCH_KEY) || '[]')
+    return Array.isArray(value) ? value.filter(Boolean).slice(0, 6) : []
+  } catch {
+    return []
+  }
+}
+
+function writeRecentSearches(list) {
+  localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(list.slice(0, 6)))
+}
+
+function formatPrice(value) {
+  const amount = Number(value || 0)
+  return amount.toLocaleString('en-IN')
+}
+
+function countActiveFilters(filters) {
+  return [
+    filters.q,
+    filters.categoryId,
+    filters.type,
+    filters.condition,
+    filters.minPrice,
+    filters.maxPrice,
+  ].filter(Boolean).length
+}
+
+function FilterChip({ label, active, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all duration-150 ${colors[color] || colors.slate}`}
+      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${
+        active
+          ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
+          : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-brand-700 dark:hover:text-brand-400'
+      }`}
     >
       {label}
     </button>
   )
 }
 
-// ─── Sort dropdown ─────────────────────────────────────────────────────────────
-function SortDropdown({ value, onChange }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef(null)
-  const current = SORT_OPTIONS.find(o => o.value === value) || SORT_OPTIONS[0]
+function Pagination({ page, totalPages, onPageChange }) {
+  if (!totalPages || totalPages <= 1) return null
 
-  useEffect(() => {
-    const handler = e => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
+  const pages = []
+  const start = Math.max(0, Math.min(page - 1, totalPages - 3))
+  const end = Math.min(totalPages, start + 3)
+
+  for (let index = start; index < end; index += 1) {
+    pages.push(index)
+  }
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="flex flex-wrap items-center justify-center gap-2">
       <button
         type="button"
-        onClick={() => setOpen(v => !v)}
-        className="btn-secondary text-sm gap-1.5 whitespace-nowrap"
+        onClick={() => onPageChange(page - 1)}
+        disabled={page === 0}
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
       >
-        <SortAsc size={14} />
-        {current.label}
-        <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronLeft size={14} />
+        Prev
       </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-48 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl z-30 overflow-hidden animate-slide-up">
-          {SORT_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => { onChange(opt.value); setOpen(false) }}
-              className={`w-full px-4 py-2.5 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                opt.value === value
-                  ? 'text-brand-600 dark:text-brand-400 font-medium'
-                  : 'text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+      {start > 0 && (
+        <>
+          <button
+            type="button"
+            onClick={() => onPageChange(0)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+          >
+            1
+          </button>
+          <span className="px-1 text-slate-400">...</span>
+        </>
       )}
+      {pages.map(index => (
+        <button
+          key={index}
+          type="button"
+          onClick={() => onPageChange(index)}
+          className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+            index === page
+              ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
+              : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+          }`}
+        >
+          {index + 1}
+        </button>
+      ))}
+      {end < totalPages && (
+        <>
+          <span className="px-1 text-slate-400">...</span>
+          <button
+            type="button"
+            onClick={() => onPageChange(totalPages - 1)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+          >
+            {totalPages}
+          </button>
+        </>
+      )}
+      <button
+        type="button"
+        onClick={() => onPageChange(page + 1)}
+        disabled={page >= totalPages - 1}
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+      >
+        Next
+        <ChevronRight size={14} />
+      </button>
     </div>
   )
 }
 
-// ─── Active filter pill ────────────────────────────────────────────────────────
-function ActivePill({ label, onRemove }) {
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 dark:bg-brand-900/40 px-2.5 py-1 text-xs font-medium text-brand-700 dark:text-brand-300">
-      {label}
-      <button onClick={onRemove} className="hover:text-brand-900 dark:hover:text-brand-100 ml-0.5">
-        <X size={11} />
-      </button>
-    </span>
-  )
-}
-
-// ─── Main component ────────────────────────────────────────────────────────────
 export default function Marketplace() {
-  const [items, setItems]           = useState([])
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [viewMode, setViewMode]     = useState('grid')   // 'grid' | 'list'
-  const [sortBy, setSortBy]         = useState('createdAt,desc')
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  const [priceMin, setPriceMin]     = useState('')
-  const [priceMax, setPriceMax]     = useState('')
-  const [filters, setFilters]       = useState({
-    q: '', categoryId: '', condition: '', type: ''
-  })
   const { user } = useAuth()
-  const debouncedQ = useDebounce(filters.q, 350)
 
-  // Build params for the API call
-  const buildParams = useCallback((overrides = {}) => {
-    const merged = { ...filters, ...overrides }
-    const [sortField, sortDir] = sortBy.split(',')
-    const params = { sort: `${sortField},${sortDir}` }
-    if (merged.q)          params.q          = merged.q
-    if (merged.categoryId) params.categoryId = merged.categoryId
-    if (merged.condition)  params.condition  = merged.condition
-    if (merged.type)       params.type       = merged.type
-    if (priceMin)          params.minPrice   = priceMin
-    if (priceMax)          params.maxPrice   = priceMax
-    return params
-  }, [filters, sortBy, priceMin, priceMax])
+  const [loading, setLoading] = useState(true)
+  const [savedLoading, setSavedLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [items, setItems] = useState([])
+  const [savedListings, setSavedListings] = useState([])
+  const [categories, setCategories] = useState([])
+  const [meta, setMeta] = useState({ totalPages: 0, totalElements: 0 })
+  const [viewMode, setViewMode] = useState('grid')
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [sortBy, setSortBy] = useState('createdAt,desc')
+  const [page, setPage] = useState(0)
+  const [wishlistIds, setWishlistIds] = useState(() => readIdSet(WISHLIST_KEY))
+  const [savedIds, setSavedIds] = useState(() => readIdSet(SAVED_KEY))
+  const [recentSearches, setRecentSearches] = useState(() => readRecentSearches())
+  const [filters, setFilters] = useState({
+    q: '',
+    categoryId: '',
+    type: '',
+    condition: '',
+    minPrice: '',
+    maxPrice: '',
+  })
 
-  const load = useCallback(async (overrides = {}) => {
-    setLoading(true)
-    try {
-      const res = await listingApi.search(buildParams(overrides))
-      setItems(res.data?.content || res.data || [])
-    } catch {
-      setItems([])
-    } finally {
-      setLoading(false)
-    }
-  }, [buildParams])
+  const debouncedQuery = useDebounce(filters.q, 350)
 
-  // Reload when debounced search or sort changes
-  useEffect(() => { load() }, [debouncedQ, sortBy]) // eslint-disable-line
-
-  // Load categories once
   useEffect(() => {
-    categoryApi.all()
-      .then(r => setCategories(r.data || []))
-      .catch(() => setCategories([]))
+    let cancelled = false
+
+    const loadCategories = async () => {
+      try {
+        const response = await categoryApi.all()
+        if (cancelled) return
+        const list = response.data?.content || response.data || []
+        setCategories(list)
+      } catch {
+        if (!cancelled) setCategories([])
+      }
+    }
+
+    loadCategories()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
-  const toggle = (field, value) =>
-    setFilters(f => ({ ...f, [field]: f[field] === value ? '' : value }))
+  useEffect(() => {
+    if (typeof window === 'undefined') return
 
-  const clearAll = () => {
-    setFilters({ q: '', categoryId: '', condition: '', type: '' })
-    setPriceMin('')
-    setPriceMax('')
-    load({ q: '', categoryId: '', condition: '', type: '' })
+    const handleStorage = event => {
+      if (event.key === WISHLIST_KEY) setWishlistIds(readIdSet(WISHLIST_KEY))
+      if (event.key === SAVED_KEY) setSavedIds(readIdSet(SAVED_KEY))
+      if (event.key === RECENT_SEARCH_KEY) setRecentSearches(readRecentSearches())
+    }
+
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
+
+  useEffect(() => {
+    const loadListings = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const params = {
+          page,
+          size: PAGE_SIZE,
+          sort: sortBy,
+        }
+
+        const query = debouncedQuery.trim()
+        if (query) params.q = query
+        if (filters.categoryId) params.categoryId = filters.categoryId
+        if (filters.type) params.type = filters.type
+        if (filters.condition) params.condition = filters.condition
+        if (filters.minPrice) params.minPrice = filters.minPrice
+        if (filters.maxPrice) params.maxPrice = filters.maxPrice
+
+        const response = await listingApi.search(params)
+        const data = response.data || {}
+        const content = data.content || data || []
+
+        setItems(content)
+        setMeta({
+          totalPages: data.totalPages ?? 0,
+          totalElements: data.totalElements ?? content.length,
+        })
+      } catch (err) {
+        setItems([])
+        setMeta({ totalPages: 0, totalElements: 0 })
+        setError(err?.response?.data?.message || 'Could not load marketplace listings.')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadListings()
+  }, [
+    debouncedQuery,
+    filters.categoryId,
+    filters.condition,
+    filters.maxPrice,
+    filters.minPrice,
+    filters.type,
+    page,
+    sortBy,
+  ])
+
+  useEffect(() => {
+    const loadSavedListings = async () => {
+      const ids = [...savedIds].map(Number).filter(Number.isFinite)
+
+      if (!ids.length) {
+        setSavedListings([])
+        setSavedLoading(false)
+        return
+      }
+
+      setSavedLoading(true)
+      try {
+        const responses = await Promise.all(
+          ids.map(id =>
+            listingApi
+              .getById(id)
+              .then(response => response.data)
+              .catch(() => null)
+          )
+        )
+        setSavedListings(responses.filter(Boolean))
+      } finally {
+        setSavedLoading(false)
+      }
+    }
+
+    loadSavedListings()
+  }, [savedIds])
+
+  const updateFilter = (key, value) => {
+    setPage(0)
+    setFilters(current => ({ ...current, [key]: value }))
   }
 
-  const applyPricePreset = preset => {
-    setPriceMin(preset.min)
-    setPriceMax(preset.max)
+  const applyPreset = preset => {
+    setPage(0)
+    setFilters(current => ({
+      ...current,
+      minPrice: preset.minPrice,
+      maxPrice: preset.maxPrice,
+    }))
   }
 
-  // Count active non-search filters
-  const activeCount = [
-    filters.categoryId, filters.condition, filters.type,
-    priceMin || priceMax ? 'price' : ''
-  ].filter(Boolean).length
+  const clearFilters = () => {
+    setPage(0)
+    setSortBy('createdAt,desc')
+    setFilters({
+      q: '',
+      categoryId: '',
+      type: '',
+      condition: '',
+      minPrice: '',
+      maxPrice: '',
+    })
+  }
 
-  // Active filter pills data
-  const activePills = [
-    filters.categoryId && {
-      label: categories.find(c => String(c.id) === String(filters.categoryId))?.name || 'Category',
-      clear: () => setFilters(f => ({ ...f, categoryId: '' }))
-    },
-    filters.condition && {
-      label: CONDITIONS.find(c => c.value === filters.condition)?.label || filters.condition,
-      clear: () => setFilters(f => ({ ...f, condition: '' }))
-    },
-    filters.type && {
-      label: TYPES.find(t => t.value === filters.type)?.label || filters.type,
-      clear: () => setFilters(f => ({ ...f, type: '' }))
-    },
-    (priceMin || priceMax) && {
-      label: `₹${priceMin || '0'} – ₹${priceMax || '∞'}`,
-      clear: () => { setPriceMin(''); setPriceMax('') }
-    },
-  ].filter(Boolean)
+  const toggleWishlist = item => {
+    setWishlistIds(current => {
+      const next = new Set(current)
+      const key = String(item.id)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      writeIdSet(WISHLIST_KEY, next)
+      return next
+    })
+  }
+
+  const toggleSaved = item => {
+    setSavedIds(current => {
+      const next = new Set(current)
+      const key = String(item.id)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      writeIdSet(SAVED_KEY, next)
+      return next
+    })
+  }
+
+  const saveSearch = query => {
+    const trimmed = query.trim()
+    if (!trimmed) return
+
+    const next = [trimmed, ...recentSearches.filter(entry => entry.toLowerCase() !== trimmed.toLowerCase())].slice(0, 6)
+    setRecentSearches(next)
+    writeRecentSearches(next)
+  }
+
+  const handleSearchSubmit = event => {
+    event.preventDefault()
+    saveSearch(filters.q)
+    setPage(0)
+  }
+
+  const activeFilterCount = countActiveFilters(filters)
+  const totalWishlist = wishlistIds.size
+  const totalSaved = savedIds.size
+
+  const totalResults = meta.totalElements || 0
 
   return (
-    <div className="space-y-10 animate-in">
-
-      {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-3xl hero-gradient px-8 py-14 sm:px-12 sm:py-16 text-white shadow-glow">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-brand-400/10 blur-3xl" />
+    <div className="space-y-8">
+      <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 px-5 py-8 text-white shadow-2xl shadow-slate-900/20 sm:px-6 lg:px-8">
+        <div className="absolute inset-0 opacity-70">
+          <div className="absolute -left-16 top-0 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl" />
+          <div className="absolute right-0 top-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
         </div>
 
-        <div className="relative max-w-3xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-3.5 py-1.5 text-sm font-medium mb-4 border border-white/20">
-            <TrendingUp size={14} />
-            Trusted by 2,400+ students
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">
-            Resources move further
-            <br />
-            <span className="text-brand-200">when campus shares.</span>
-          </h1>
-
-          <p className="text-brand-100 text-lg mb-8 max-w-xl">
-            Buy, rent, exchange, and reuse everything students need — textbooks, lab kits, electronics, and more.
-          </p>
-
-          {/* Hero search bar */}
-          <form
-            onSubmit={e => { e.preventDefault(); load() }}
-            className="flex gap-2 max-w-xl"
-          >
-            <div className="relative flex-1">
-              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="search"
-                placeholder="Search for textbooks, calculators…"
-                value={filters.q}
-                onChange={e => setFilters(f => ({ ...f, q: e.target.value }))}
-                className="w-full border-0 bg-white/95 dark:bg-white pl-10 pr-4 py-3 rounded-xl text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-white shadow-lg"
-                aria-label="Search listings"
-              />
+        <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+          <div className="space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 backdrop-blur">
+              <Sparkles size={12} />
+              Modern campus marketplace
             </div>
-            <button type="submit" className="btn-lg bg-white text-brand-700 hover:bg-white/90 shadow-lg border-0">
-              Search
-            </button>
-          </form>
 
-          {/* Quick type chips inside hero */}
-          <div className="flex flex-wrap gap-2 mt-5">
-            {TYPES.map(t => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => { toggle('type', t.value); load({ type: filters.type === t.value ? '' : t.value }) }}
-                className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                  filters.type === t.value
-                    ? 'bg-white text-brand-700 border-white'
-                    : 'border-white/30 text-white hover:bg-white/10'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-wrap gap-3 mt-6">
-            {user ? (
-              <Link to="/create" className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-700 px-5 py-2.5 text-sm font-semibold hover:bg-brand-50 transition-colors shadow-md">
-                + Create listing <ArrowRight size={15} />
-              </Link>
-            ) : (
-              <Link to="/register" className="inline-flex items-center gap-2 rounded-xl bg-white text-brand-700 px-5 py-2.5 text-sm font-semibold hover:bg-brand-50 transition-colors shadow-md">
-                Get started free <ArrowRight size={15} />
-              </Link>
-            )}
-            <Link to="/notes" className="inline-flex items-center gap-2 rounded-xl border border-white/30 text-white px-5 py-2.5 text-sm font-medium hover:bg-white/10 transition-colors">
-              Browse notes
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Stats ──────────────────────────────────────────────────────── */}
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {STATS.map(s => (
-          <div key={s.label} className="card text-center p-4 sm:p-5 hover:shadow-card-hover transition-shadow">
-            <s.icon size={24} className={`mx-auto mb-2 ${s.color}`} />
-            <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{s.value}</div>
-            <div className="text-sm text-slate-500 dark:text-slate-400">{s.label}</div>
-          </div>
-        ))}
-      </section>
-
-      {/* ── Browse section ──────────────────────────────────────────────── */}
-      <section className="space-y-4">
-
-        {/* Section header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Browse Listings</h2>
-            {!loading && (
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                {items.length} {items.length === 1 ? 'listing' : 'listings'} found
+            <div className="space-y-3">
+              <h1 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
+                Buy, rent, or exchange campus essentials in one polished marketplace.
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-white/75 sm:text-base">
+                Search faster, save items for later, compare similar products, and move through listings with a cleaner browsing experience.
               </p>
-            )}
+            </div>
+
+            <form onSubmit={handleSearchSubmit} className="space-y-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <label className="relative flex-1">
+                  <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    value={filters.q}
+                    onChange={e => updateFilter('q', e.target.value)}
+                    placeholder="Search products, categories, or sellers"
+                    className="h-12 w-full rounded-2xl border border-white/10 bg-white/10 pl-11 pr-4 text-sm text-white placeholder:text-white/45 outline-none transition-colors focus:border-white/30 focus:bg-white/15"
+                  />
+                </label>
+
+                <button type="submit" className="btn h-12 gap-2 rounded-2xl px-5">
+                  <Search size={16} />
+                  Search
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen(open => !open)}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur transition-colors hover:bg-white/10"
+                >
+                  <SlidersHorizontal size={12} />
+                  Advanced filters
+                  {activeFilterCount > 0 && (
+                    <span className="rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {recentSearches.map(term => (
+                  <button
+                    key={term}
+                    type="button"
+                    onClick={() => {
+                      updateFilter('q', term)
+                      saveSearch(term)
+                    }}
+                    className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:bg-white/10"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </form>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {activeCount > 0 && (
-              <button
-                onClick={clearAll}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-              >
-                <X size={12} />
-                Clear all ({activeCount})
-              </button>
-            )}
-            <SortDropdown value={sortBy} onChange={v => { setSortBy(v) }} />
-            <button
-              onClick={() => setShowAdvanced(v => !v)}
-              className={`btn-secondary text-sm gap-1.5 ${showAdvanced ? 'bg-brand-50 dark:bg-brand-900/30 border-brand-300 dark:border-brand-700 text-brand-700 dark:text-brand-300' : ''}`}
-            >
-              <SlidersHorizontal size={14} />
-              Filters
-              {activeCount > 0 && (
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand-600 text-[10px] font-bold text-white">
-                  {activeCount}
-                </span>
-              )}
-            </button>
-            {/* View mode toggle */}
-            <div className="hidden sm:flex items-center rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                className={`p-2 transition-colors ${viewMode === 'grid' ? 'bg-brand-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                aria-label="Grid view"
-              >
-                <LayoutGrid size={15} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`p-2 transition-colors ${viewMode === 'list' ? 'bg-brand-600 text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                aria-label="List view"
-              >
-                <List size={15} />
-              </button>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Listings</p>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <div className="text-3xl font-bold">{totalResults}</div>
+                <PackageSearch size={22} className="text-white/55" />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Saved</p>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <div className="text-3xl font-bold">{totalSaved}</div>
+                <Bookmark size={22} className="text-white/55" />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Wishlist</p>
+              <div className="mt-2 flex items-end justify-between gap-3">
+                <div className="text-3xl font-bold">{totalWishlist}</div>
+                <Heart size={22} className="text-white/55" />
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Active filter pills */}
-        {activePills.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {activePills.map((pill, i) => (
-              <ActivePill key={i} label={pill.label} onRemove={() => { pill.clear(); load() }} />
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Saved listings</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Quickly revisit items you bookmarked for later.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="brand">{totalSaved} saved</Badge>
+            <Badge variant="red">{totalWishlist} wishlisted</Badge>
+          </div>
+        </div>
+
+        {savedLoading ? (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="min-w-[300px] w-[300px]">
+                <SkeletonCard />
+              </div>
             ))}
           </div>
-        )}
-
-        {/* Advanced filter panel */}
-        {showAdvanced && (
-          <div className="card space-y-5 animate-slide-up border-brand-200 dark:border-brand-800">
-            {/* Row 1: Category */}
-            <div>
-              <div className="flex items-center gap-2 mb-2.5">
-                <Tag size={14} className="text-slate-500 dark:text-slate-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Category</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <FilterChip
-                  label="All"
-                  active={!filters.categoryId}
-                  onClick={() => { setFilters(f => ({ ...f, categoryId: '' })); load({ categoryId: '' }) }}
-                  color="slate"
+        ) : savedListings.length ? (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {savedListings.map(item => (
+              <div key={item.id} className="min-w-[300px] w-[300px] flex-shrink-0">
+                <ListingCard
+                  item={item}
+                  user={user}
+                  listMode
+                  isWishlisted={wishlistIds.has(String(item.id))}
+                  isSaved={savedIds.has(String(item.id))}
+                  onToggleWishlist={toggleWishlist}
+                  onToggleSaved={toggleSaved}
                 />
-                {categories.map(c => (
-                  <FilterChip
-                    key={c.id}
-                    label={c.name}
-                    active={String(filters.categoryId) === String(c.id)}
-                    onClick={() => { toggle('categoryId', String(c.id)); load({ categoryId: filters.categoryId === String(c.id) ? '' : String(c.id) }) }}
-                    color="brand"
-                  />
-                ))}
               </div>
-            </div>
-
-            {/* Row 2: Type */}
-            <div>
-              <div className="flex items-center gap-2 mb-2.5">
-                <Layers size={14} className="text-slate-500 dark:text-slate-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Type</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {TYPES.map(t => (
-                  <FilterChip
-                    key={t.value}
-                    label={t.label}
-                    active={filters.type === t.value}
-                    onClick={() => { toggle('type', t.value); load({ type: filters.type === t.value ? '' : t.value }) }}
-                    color={t.color}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Row 3: Condition */}
-            <div>
-              <div className="flex items-center gap-2 mb-2.5">
-                <Star size={14} className="text-slate-500 dark:text-slate-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Condition</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {CONDITIONS.map(c => (
-                  <FilterChip
-                    key={c.value}
-                    label={c.label}
-                    active={filters.condition === c.value}
-                    onClick={() => { toggle('condition', c.value); load({ condition: filters.condition === c.value ? '' : c.value }) }}
-                    color={c.color}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Row 4: Price */}
-            <div>
-              <div className="flex items-center gap-2 mb-2.5">
-                <DollarSign size={14} className="text-slate-500 dark:text-slate-400" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Price Range</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Presets */}
-                {PRICE_PRESETS.map(p => (
-                  <FilterChip
-                    key={p.label}
-                    label={p.label}
-                    active={priceMin === p.min && priceMax === p.max}
-                    onClick={() => applyPricePreset(p)}
-                    color="slate"
-                  />
-                ))}
-                {/* Manual inputs */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Min ₹"
-                    value={priceMin}
-                    onChange={e => setPriceMin(e.target.value)}
-                    className="w-24 py-1.5 px-2.5 text-sm"
-                  />
-                  <span className="text-slate-400 text-sm">–</span>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Max ₹"
-                    value={priceMax}
-                    onChange={e => setPriceMax(e.target.value)}
-                    className="w-24 py-1.5 px-2.5 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Apply / Reset */}
-            <div className="flex gap-2 pt-1 justify-end border-t border-slate-100 dark:border-slate-800">
-              <button type="button" onClick={clearAll} className="btn-secondary text-sm">
-                Reset all
-              </button>
-              <button
-                type="button"
-                onClick={() => { load(); setShowAdvanced(false) }}
-                className="btn text-sm gap-1.5"
-              >
-                <RefreshCw size={13} />
-                Apply filters
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Grid / List */}
-        {loading ? (
-          <div className={viewMode === 'list'
-            ? 'space-y-3'
-            : 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}>
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
-          </div>
-        ) : items.length === 0 ? (
-          <EmptyState
-            icon={Package}
-            title="No listings found"
-            description="Try adjusting your filters or be the first to list something!"
-            action={user
-              ? <Link to="/create" className="btn">Create a listing</Link>
-              : <Link to="/register" className="btn">Get started</Link>
-            }
-          />
-        ) : viewMode === 'list' ? (
-          /* ── List view ── */
-          <div className="space-y-3">
-            {items.map(item => (
-              <ListingCard key={item.id} item={item} user={user} onRequestSuccess={() => load()} listMode />
             ))}
           </div>
         ) : (
-          /* ── Grid view ── */
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.map(item => (
-              <ListingCard key={item.id} item={item} user={user} onRequestSuccess={() => load()} />
-            ))}
+          <div className="card">
+            <EmptyState
+              icon={BookmarkCheck}
+              title="No saved listings yet"
+              description="Use the bookmark action on any product card to build a shortlist here."
+              action={
+                <button type="button" onClick={() => setFiltersOpen(true)} className="btn gap-2">
+                  <Filter size={14} />
+                  Open filters
+                </button>
+              }
+            />
           </div>
         )}
       </section>
 
-      {/* ── Features ───────────────────────────────────────────────────── */}
-      <section className="py-4">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-3">Everything you need</h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
-            A complete campus ecosystem — built for students, by students.
-          </p>
-        </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {FEATURES.map(f => (
-            <div key={f.title} className="card group hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300">
-              <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${f.color} mb-4 shadow-lg`}>
-                <f.icon size={20} className="text-white" />
-              </div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-2">{f.title}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">{f.desc}</p>
+      <section className="card space-y-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Browse listings</h2>
+              <Badge variant="slate">{totalResults} total</Badge>
             </div>
-          ))}
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Filter by category, type, condition, or price. Results update instantly as you refine the search.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                viewMode === 'grid'
+                  ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+              }`}
+            >
+              <LayoutGrid size={14} />
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                viewMode === 'list'
+                  ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+              }`}
+            >
+              <List size={14} />
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(open => !open)}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            >
+              <SlidersHorizontal size={14} />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            >
+              <RefreshCw size={14} />
+              Reset
+            </button>
+          </div>
+        </div>
+
+        {filtersOpen && (
+          <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Advanced filters</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Narrow down listings without losing the browsing flow.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFiltersOpen(false)}
+                className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-white hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+              <label className="space-y-1.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Category</span>
+                <select
+                  value={filters.categoryId}
+                  onChange={e => updateFilter('categoryId', e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                >
+                  <option value="">All categories</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-1.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Type</span>
+                <select
+                  value={filters.type}
+                  onChange={e => updateFilter('type', e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                >
+                  <option value="">All types</option>
+                  {TYPE_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-1.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Condition</span>
+                <select
+                  value={filters.condition}
+                  onChange={e => updateFilter('condition', e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                >
+                  <option value="">Any condition</option>
+                  {CONDITION_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="space-y-1.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Min price</span>
+                <input
+                  value={filters.minPrice}
+                  onChange={e => updateFilter('minPrice', e.target.value)}
+                  inputMode="numeric"
+                  placeholder="0"
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+
+              <label className="space-y-1.5">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Max price</span>
+                <input
+                  value={filters.maxPrice}
+                  onChange={e => updateFilter('maxPrice', e.target.value)}
+                  inputMode="numeric"
+                  placeholder="No limit"
+                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                Price presets
+              </span>
+              {PRICE_PRESETS.map(preset => {
+                const active = filters.minPrice === preset.minPrice && filters.maxPrice === preset.maxPrice
+                return (
+                  <FilterChip
+                    key={preset.label}
+                    label={preset.label}
+                    active={active}
+                    onClick={() => applyPreset(preset)}
+                  />
+                )
+              })}
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                Active filters
+              </span>
+              {filters.q && (
+                <Badge variant="brand" className="gap-1.5">
+                  Query: {filters.q}
+                </Badge>
+              )}
+              {filters.categoryId && (
+                <Badge variant="blue">
+                  Category #{filters.categoryId}
+                </Badge>
+              )}
+              {filters.type && <Badge variant="emerald">{filters.type}</Badge>}
+              {filters.condition && <Badge variant="amber">{filters.condition}</Badge>}
+              {filters.minPrice && <Badge variant="slate">Min Rs. {filters.minPrice}</Badge>}
+              {filters.maxPrice && <Badge variant="slate">Max Rs. {filters.maxPrice}</Badge>}
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/40">
+          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+            <Star size={14} className="text-amber-500" />
+            Showing {items.length} of {totalResults} listings
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {SORT_OPTIONS.map(option => {
+              const Icon = option.icon
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setPage(0)
+                    setSortBy(option.value)
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                    sortBy === option.value
+                      ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                  }`}
+                >
+                  <Icon size={11} />
+                  {option.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-4'}>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="card">
+            <EmptyState
+              icon={PackageSearch}
+              title="Marketplace unavailable"
+              description={error}
+              action={
+                <button type="button" onClick={clearFilters} className="btn gap-2">
+                  <RefreshCw size={14} />
+                  Try again
+                </button>
+              }
+            />
+          </div>
+        ) : items.length ? (
+          <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-4'}>
+            {items.map(item => (
+              <ListingCard
+                key={item.id}
+                item={item}
+                user={user}
+                listMode={viewMode === 'list'}
+                isWishlisted={wishlistIds.has(String(item.id))}
+                isSaved={savedIds.has(String(item.id))}
+                onToggleWishlist={toggleWishlist}
+                onToggleSaved={toggleSaved}
+                onRequestSuccess={() => {
+                  setPage(0)
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="card">
+            <EmptyState
+              icon={PackageSearch}
+              title="No listings matched your search"
+              description="Try widening the price range, switching categories, or clearing the filters."
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button type="button" onClick={clearFilters} className="btn gap-2">
+                    <RefreshCw size={14} />
+                    Clear filters
+                  </button>
+                  <Link to="/create" className="btn btn-secondary gap-2">
+                    List an item
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              }
+            />
+          </div>
+        )}
+
+        <div className="pt-2">
+          <Pagination page={page} totalPages={meta.totalPages || 0} onPageChange={setPage} />
         </div>
       </section>
-
-      {/* ── Footer CTA (guests only) ────────────────────────────────────── */}
-      {!user && (
-        <section className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-800 dark:to-slate-900 border border-slate-700 p-8 sm:p-12 text-center">
-          <Star size={32} className="mx-auto mb-4 text-amber-400" />
-          <h2 className="text-3xl font-bold text-white mb-3">Ready to get started?</h2>
-          <p className="text-slate-400 mb-6 max-w-md mx-auto">
-            Join thousands of students already trading, sharing notes, and connecting on CampusShare.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link to="/register" className="btn-lg bg-brand-600 hover:bg-brand-700">
-              Create free account
-            </Link>
-            <Link to="/login" className="inline-flex items-center gap-2 rounded-xl border border-slate-600 text-slate-300 px-6 py-3 text-base font-medium hover:bg-slate-700 transition-colors">
-              Sign in
-            </Link>
-          </div>
-        </section>
-      )}
     </div>
   )
 }

@@ -14,6 +14,8 @@ import com.campusshare.repository.UserRepository;
 import com.campusshare.service.QrGenerationService;
 import com.campusshare.service.QrVerificationService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,8 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Transactional
 public class QrVerificationServiceImpl implements QrVerificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(QrVerificationServiceImpl.class);
 
     private final OrderRepository orders;
     private final UserRepository users;
@@ -62,6 +66,8 @@ public class QrVerificationServiceImpl implements QrVerificationService {
         order.setHandoverTokenHash(null);
         order.getProduct().setStatus(ListingStatus.COMPLETED);
         notify(order.getBuyer(), NotificationType.ORDER, "Order completed via QR verification", "/orders");
+        log.info("event=order_completed_via_qr order_id={} seller_id={} buyer_id={}",
+                order.getId(), order.getSeller().getId(), order.getBuyer().getId());
         return orders.save(order);
     }
 

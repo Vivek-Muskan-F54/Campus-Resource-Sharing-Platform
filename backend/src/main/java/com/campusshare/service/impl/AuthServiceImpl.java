@@ -58,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setCollegeRollNumber(request.collegeRollNumber().trim());
         User saved = users.save(user);
-        log.info("AUTH register: userId={} email={}", saved.getId(), email);
+        log.info("event=auth_registration user_id={}", saved.getId());
         return createTokenResponse(saved);
     }
 
@@ -71,12 +71,12 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception ex) {
             // Log the failure without the password; re-throw so the
             // GlobalExceptionHandler returns the correct 401 response.
-            log.warn("AUTH login failed: email={} reason={}", email, ex.getClass().getSimpleName());
+            log.warn("event=auth_login_failed reason={}", ex.getClass().getSimpleName());
             throw ex;
         }
         User user = users.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
-        log.info("AUTH login: userId={} email={}", user.getId(), email);
+        log.info("event=auth_login_success user_id={}", user.getId());
         return createTokenResponse(user);
     }
 
@@ -102,13 +102,13 @@ public class AuthServiceImpl implements AuthService {
 
             storedToken.setRevoked(true);
             refreshTokens.save(storedToken);
-            log.info("AUTH token_refresh: userId={} email={}", storedToken.getUser().getId(), email);
+            log.info("event=auth_token_refresh user_id={}", storedToken.getUser().getId());
             return createTokenResponse(storedToken.getUser());
         } catch (TokenRefreshException exception) {
-            log.warn("AUTH token_refresh failed: reason={}", exception.getMessage());
+            log.warn("event=auth_token_refresh_failed reason={}", exception.getMessage());
             throw exception;
         } catch (Exception exception) {
-            log.warn("AUTH token_refresh error: {}", exception.getClass().getSimpleName());
+            log.warn("event=auth_token_refresh_error type={}", exception.getClass().getSimpleName());
             throw new TokenRefreshException("Invalid or expired refresh token");
         }
     }
@@ -118,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
         refreshTokens.findByTokenHash(hash(request.refreshToken())).ifPresent(token -> {
             token.setRevoked(true);
             refreshTokens.save(token);
-            log.info("AUTH logout: userId={}", token.getUser().getId());
+            log.info("event=auth_logout user_id={}", token.getUser().getId());
         });
     }
 
