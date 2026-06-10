@@ -1,851 +1,562 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ArrowRight,
-  Bookmark,
-  BookmarkCheck,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Filter,
+  BookOpen,
+  CheckCircle2,
+  ChevronDown,
   Heart,
-  LayoutGrid,
-  List,
-  PackageSearch,
-  RefreshCw,
+  Layers3,
+  Package,
   Search,
-  SlidersHorizontal,
+  ShieldCheck,
   Sparkles,
   Star,
-  TrendingUp,
-  X,
+  Zap,
 } from 'lucide-react'
-import { categoryApi, listingApi } from '../api/services'
+import { categoryApi, listingApi, noteApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
-import { useDebounce } from '../hooks/useDebounce'
 import ListingCard from '../components/ListingCard'
 import { SkeletonCard } from '../components/ui/SkeletonCard'
 import EmptyState from '../components/ui/EmptyState'
 import Badge from '../components/ui/Badge'
-import { Link } from 'react-router-dom'
+import Avatar from '../components/ui/Avatar'
 
-const PAGE_SIZE = 12
-const WISHLIST_KEY = 'campusshare_marketplace_wishlist'
-const SAVED_KEY = 'campusshare_marketplace_saved'
-const RECENT_SEARCH_KEY = 'campusshare_marketplace_recent_searches'
-
-const TYPE_OPTIONS = [
-  { value: 'SELL', label: 'For sale' },
-  { value: 'RENT', label: 'For rent' },
-  { value: 'EXCHANGE', label: 'Exchange' },
+const FEATURES = [
+  {
+    icon: Search,
+    title: 'Fast discovery',
+    description: 'Find listings and resources with a clean, campus-first browsing flow built for quick decisions.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Trusted sharing',
+    description: 'Verification-backed profiles and moderated notes keep the marketplace reliable and student-friendly.',
+  },
+  {
+    icon: Zap,
+    title: 'Instant access',
+    description: 'Browse, save, and request items with a crisp interface that stays lightweight on mobile and desktop.',
+  },
+  {
+    icon: Layers3,
+    title: 'One shared hub',
+    description: 'Marketplace, notes, orders, and chat live under one consistent brand experience.',
+  },
 ]
 
-const CONDITION_OPTIONS = [
-  { value: 'NEW', label: 'New' },
-  { value: 'LIKE_NEW', label: 'Like new' },
-  { value: 'GOOD', label: 'Good' },
-  { value: 'FAIR', label: 'Fair' },
-  { value: 'POOR', label: 'Poor' },
+const TESTIMONIALS = [
+  {
+    name: 'Ananya Rao',
+    role: 'CSE student',
+    quote: 'CampusShare feels like a polished product, not just a college portal. I found books and lab gear in minutes.',
+    rating: 5,
+  },
+  {
+    name: 'Rahul Mehta',
+    role: 'Marketplace seller',
+    quote: 'The layout makes my listings look premium, and students actually respond faster because the experience is so clear.',
+    rating: 5,
+  },
+  {
+    name: 'Sara Khan',
+    role: 'Notes contributor',
+    quote: 'The notes side is easy to browse and the platform feels cohesive across resources, which is a big win.',
+    rating: 4,
+  },
 ]
 
-const SORT_OPTIONS = [
-  { value: 'createdAt,desc', label: 'Newest first', icon: Clock },
-  { value: 'price,asc', label: 'Price: low to high', icon: TrendingUp },
-  { value: 'price,desc', label: 'Price: high to low', icon: TrendingUp },
-  { value: 'createdAt,asc', label: 'Oldest first', icon: Clock },
+const FAQS = [
+  {
+    question: 'How does CampusShare work?',
+    answer: 'Students can browse listings and notes, save items, request products, and share useful resources inside one unified platform.',
+  },
+  {
+    question: 'Do I need to verify my account?',
+    answer: 'Verification is required for sensitive actions like posting certain marketplace items so the community stays trusted.',
+  },
+  {
+    question: 'Can I upload notes from my phone?',
+    answer: 'Yes. The interface is responsive, so uploads, browsing, and downloads all work smoothly on mobile devices.',
+  },
+  {
+    question: 'Is the platform fast?',
+    answer: 'The landing page keeps data requests light and only loads a small number of live items for a quick first paint.',
+  },
 ]
 
-const PRICE_PRESETS = [
-  { label: 'Under Rs. 1k', minPrice: '', maxPrice: '1000' },
-  { label: 'Rs. 1k - 5k', minPrice: '1000', maxPrice: '5000' },
-  { label: 'Rs. 5k - 10k', minPrice: '5000', maxPrice: '10000' },
-  { label: 'Above Rs. 10k', minPrice: '10000', maxPrice: '' },
-]
-
-function readIdSet(key) {
-  if (typeof window === 'undefined') return new Set()
-  try {
-    const value = JSON.parse(localStorage.getItem(key) || '[]')
-    return new Set((Array.isArray(value) ? value : []).map(String))
-  } catch {
-    return new Set()
-  }
+function formatCount(value) {
+  return Number(value || 0).toLocaleString('en-IN')
 }
 
-function writeIdSet(key, set) {
-  localStorage.setItem(key, JSON.stringify([...set]))
-}
-
-function readRecentSearches() {
-  if (typeof window === 'undefined') return []
-  try {
-    const value = JSON.parse(localStorage.getItem(RECENT_SEARCH_KEY) || '[]')
-    return Array.isArray(value) ? value.filter(Boolean).slice(0, 6) : []
-  } catch {
-    return []
-  }
-}
-
-function writeRecentSearches(list) {
-  localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(list.slice(0, 6)))
-}
-
-function formatPrice(value) {
-  const amount = Number(value || 0)
-  return amount.toLocaleString('en-IN')
-}
-
-function countActiveFilters(filters) {
-  return [
-    filters.q,
-    filters.categoryId,
-    filters.type,
-    filters.condition,
-    filters.minPrice,
-    filters.maxPrice,
-  ].filter(Boolean).length
-}
-
-function FilterChip({ label, active, onClick }) {
+function HeroStat({ label, value, icon: Icon }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${
-        active
-          ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-          : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-brand-700 dark:hover:text-brand-400'
-      }`}
-    >
-      {label}
-    </button>
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-white/45">{label}</p>
+          <p className="mt-2 text-2xl font-bold text-white">{value}</p>
+        </div>
+        <div className="rounded-2xl bg-white/10 p-2.5 text-white">
+          <Icon size={18} />
+        </div>
+      </div>
+    </div>
   )
 }
 
-function Pagination({ page, totalPages, onPageChange }) {
-  if (!totalPages || totalPages <= 1) return null
-
-  const pages = []
-  const start = Math.max(0, Math.min(page - 1, totalPages - 3))
-  const end = Math.min(totalPages, start + 3)
-
-  for (let index = start; index < end; index += 1) {
-    pages.push(index)
-  }
-
+function SectionHeading({ eyebrow, title, description }) {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2">
-      <button
-        type="button"
-        onClick={() => onPageChange(page - 1)}
-        disabled={page === 0}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-      >
-        <ChevronLeft size={14} />
-        Prev
-      </button>
-      {start > 0 && (
-        <>
-          <button
-            type="button"
-            onClick={() => onPageChange(0)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-          >
-            1
-          </button>
-          <span className="px-1 text-slate-400">...</span>
-        </>
-      )}
-      {pages.map(index => (
-        <button
-          key={index}
-          type="button"
-          onClick={() => onPageChange(index)}
-          className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-            index === page
-              ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
-          }`}
-        >
-          {index + 1}
-        </button>
-      ))}
-      {end < totalPages && (
-        <>
-          <span className="px-1 text-slate-400">...</span>
-          <button
-            type="button"
-            onClick={() => onPageChange(totalPages - 1)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-          >
-            {totalPages}
-          </button>
-        </>
-      )}
-      <button
-        type="button"
-        onClick={() => onPageChange(page + 1)}
-        disabled={page >= totalPages - 1}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-      >
-        Next
-        <ChevronRight size={14} />
-      </button>
+    <div className="max-w-2xl space-y-3">
+      <Badge variant="brand" className="gap-1.5">
+        <Sparkles size={10} />
+        {eyebrow}
+      </Badge>
+      <h2 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{title}</h2>
+      <p className="text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-base">{description}</p>
     </div>
+  )
+}
+
+function FeatureCard({ icon: Icon, title, description }) {
+  return (
+    <div className="card group overflow-hidden">
+      <div className="mb-4 inline-flex rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-500 p-3 text-white shadow-lg shadow-brand-600/15 transition-transform group-hover:scale-105">
+        <Icon size={20} />
+      </div>
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
+    </div>
+  )
+}
+
+function TestimonialCard({ name, role, quote, rating }) {
+  return (
+    <div className="card h-full">
+      <div className="flex items-center gap-3">
+        <Avatar name={name} size="lg" />
+        <div>
+          <p className="font-semibold text-slate-900 dark:text-white">{name}</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{role}</p>
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-1 text-amber-500">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Star
+            key={index}
+            size={14}
+            fill={index < rating ? 'currentColor' : 'none'}
+            className={index < rating ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}
+          />
+        ))}
+      </div>
+      <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">“{quote}”</p>
+    </div>
+  )
+}
+
+function FaqItem({ item, open, onToggle }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
+      >
+        <span className="font-semibold text-slate-900 dark:text-white">{item.question}</span>
+        <ChevronDown size={16} className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.answer}</div>
+      )}
+    </div>
+  )
+}
+
+function FooterLink({ to, children }) {
+  return (
+    <Link
+      to={to}
+      className="text-sm text-slate-500 transition-colors hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400"
+    >
+      {children}
+    </Link>
   )
 }
 
 export default function Marketplace() {
   const { user } = useAuth()
-
   const [loading, setLoading] = useState(true)
-  const [savedLoading, setSavedLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [items, setItems] = useState([])
-  const [savedListings, setSavedListings] = useState([])
-  const [categories, setCategories] = useState([])
-  const [meta, setMeta] = useState({ totalPages: 0, totalElements: 0 })
-  const [viewMode, setViewMode] = useState('grid')
-  const [filtersOpen, setFiltersOpen] = useState(false)
-  const [sortBy, setSortBy] = useState('createdAt,desc')
-  const [page, setPage] = useState(0)
-  const [wishlistIds, setWishlistIds] = useState(() => readIdSet(WISHLIST_KEY))
-  const [savedIds, setSavedIds] = useState(() => readIdSet(SAVED_KEY))
-  const [recentSearches, setRecentSearches] = useState(() => readRecentSearches())
-  const [filters, setFilters] = useState({
-    q: '',
-    categoryId: '',
-    type: '',
-    condition: '',
-    minPrice: '',
-    maxPrice: '',
+  const [heroStats, setHeroStats] = useState({
+    listings: 0,
+    notes: 0,
+    categories: 0,
+    highlights: 0,
   })
-
-  const debouncedQuery = useDebounce(filters.q, 350)
+  const [featuredListings, setFeaturedListings] = useState([])
+  const [featuredNotes, setFeaturedNotes] = useState([])
+  const [faqOpen, setFaqOpen] = useState(0)
 
   useEffect(() => {
     let cancelled = false
 
-    const loadCategories = async () => {
+    const load = async () => {
+      setLoading(true)
       try {
-        const response = await categoryApi.all()
+        const [listingRes, noteRes, categoryRes] = await Promise.all([
+          listingApi.search({ status: 'ACTIVE', page: 0, size: 4, sort: 'createdAt,desc' }),
+          noteApi.all({ page: 0, size: 4, sort: 'createdAt,desc' }),
+          categoryApi.all(),
+        ])
+
         if (cancelled) return
-        const list = response.data?.content || response.data || []
-        setCategories(list)
+
+        const listingData = listingRes.data || {}
+        const noteData = noteRes.data || {}
+        const featuredProducts = listingData.content || []
+        const featuredStudyNotes = noteData.content || []
+
+        setFeaturedListings(featuredProducts)
+        setFeaturedNotes(featuredStudyNotes)
+        setHeroStats({
+          listings: listingData.totalElements ?? featuredProducts.length,
+          notes: noteData.totalElements ?? featuredStudyNotes.length,
+          categories: (categoryRes.data?.content || categoryRes.data || []).length,
+          highlights: featuredProducts.length + featuredStudyNotes.length,
+        })
       } catch {
-        if (!cancelled) setCategories([])
+        if (!cancelled) {
+          setFeaturedListings([])
+          setFeaturedNotes([])
+          setHeroStats({ listings: 0, notes: 0, categories: 0, highlights: 0 })
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     }
 
-    loadCategories()
+    load()
     return () => {
       cancelled = true
     }
   }, [])
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-
-    const handleStorage = event => {
-      if (event.key === WISHLIST_KEY) setWishlistIds(readIdSet(WISHLIST_KEY))
-      if (event.key === SAVED_KEY) setSavedIds(readIdSet(SAVED_KEY))
-      if (event.key === RECENT_SEARCH_KEY) setRecentSearches(readRecentSearches())
-    }
-
-    window.addEventListener('storage', handleStorage)
-    return () => window.removeEventListener('storage', handleStorage)
-  }, [])
-
-  useEffect(() => {
-    const loadListings = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const params = {
-          page,
-          size: PAGE_SIZE,
-          sort: sortBy,
-        }
-
-        const query = debouncedQuery.trim()
-        if (query) params.q = query
-        if (filters.categoryId) params.categoryId = filters.categoryId
-        if (filters.type) params.type = filters.type
-        if (filters.condition) params.condition = filters.condition
-        if (filters.minPrice) params.minPrice = filters.minPrice
-        if (filters.maxPrice) params.maxPrice = filters.maxPrice
-
-        const response = await listingApi.search(params)
-        const data = response.data || {}
-        const content = data.content || data || []
-
-        setItems(content)
-        setMeta({
-          totalPages: data.totalPages ?? 0,
-          totalElements: data.totalElements ?? content.length,
-        })
-      } catch (err) {
-        setItems([])
-        setMeta({ totalPages: 0, totalElements: 0 })
-        setError(err?.response?.data?.message || 'Could not load marketplace listings.')
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadListings()
-  }, [
-    debouncedQuery,
-    filters.categoryId,
-    filters.condition,
-    filters.maxPrice,
-    filters.minPrice,
-    filters.type,
-    page,
-    sortBy,
-  ])
-
-  useEffect(() => {
-    const loadSavedListings = async () => {
-      const ids = [...savedIds].map(Number).filter(Number.isFinite)
-
-      if (!ids.length) {
-        setSavedListings([])
-        setSavedLoading(false)
-        return
-      }
-
-      setSavedLoading(true)
-      try {
-        const responses = await Promise.all(
-          ids.map(id =>
-            listingApi
-              .getById(id)
-              .then(response => response.data)
-              .catch(() => null)
-          )
-        )
-        setSavedListings(responses.filter(Boolean))
-      } finally {
-        setSavedLoading(false)
-      }
-    }
-
-    loadSavedListings()
-  }, [savedIds])
-
-  const updateFilter = (key, value) => {
-    setPage(0)
-    setFilters(current => ({ ...current, [key]: value }))
-  }
-
-  const applyPreset = preset => {
-    setPage(0)
-    setFilters(current => ({
-      ...current,
-      minPrice: preset.minPrice,
-      maxPrice: preset.maxPrice,
-    }))
-  }
-
-  const clearFilters = () => {
-    setPage(0)
-    setSortBy('createdAt,desc')
-    setFilters({
-      q: '',
-      categoryId: '',
-      type: '',
-      condition: '',
-      minPrice: '',
-      maxPrice: '',
-    })
-  }
-
-  const toggleWishlist = item => {
-    setWishlistIds(current => {
-      const next = new Set(current)
-      const key = String(item.id)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      writeIdSet(WISHLIST_KEY, next)
-      return next
-    })
-  }
-
-  const toggleSaved = item => {
-    setSavedIds(current => {
-      const next = new Set(current)
-      const key = String(item.id)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      writeIdSet(SAVED_KEY, next)
-      return next
-    })
-  }
-
-  const saveSearch = query => {
-    const trimmed = query.trim()
-    if (!trimmed) return
-
-    const next = [trimmed, ...recentSearches.filter(entry => entry.toLowerCase() !== trimmed.toLowerCase())].slice(0, 6)
-    setRecentSearches(next)
-    writeRecentSearches(next)
-  }
-
-  const handleSearchSubmit = event => {
-    event.preventDefault()
-    saveSearch(filters.q)
-    setPage(0)
-  }
-
-  const activeFilterCount = countActiveFilters(filters)
-  const totalWishlist = wishlistIds.size
-  const totalSaved = savedIds.size
-
-  const totalResults = meta.totalElements || 0
+  const quickLinks = useMemo(
+    () => [
+      { label: 'Marketplace', to: '/' },
+      { label: 'Notes', to: '/notes' },
+      { label: 'Orders', to: '/orders' },
+      { label: 'Verification', to: '/verification' },
+      { label: 'Chat', to: '/chat' },
+    ],
+    []
+  )
 
   return (
-    <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-brand-950 px-5 py-8 text-white shadow-2xl shadow-slate-900/20 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 opacity-70">
-          <div className="absolute -left-16 top-0 h-64 w-64 rounded-full bg-brand-500/20 blur-3xl" />
-          <div className="absolute right-0 top-10 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
+    <div className="space-y-20 pb-10">
+      <section className="relative overflow-hidden rounded-[36px] border border-slate-200 bg-gradient-to-br from-slate-950 via-brand-950 to-slate-900 px-5 py-8 text-white shadow-2xl shadow-slate-900/20 sm:px-8 lg:px-10">
+        <div className="absolute inset-0 opacity-80">
+          <div className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
+          <div className="absolute right-0 top-10 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
         </div>
 
-        <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-          <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 backdrop-blur">
-              <Sparkles size={12} />
-              Modern campus marketplace
-            </div>
-
-            <div className="space-y-3">
-              <h1 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
-                Buy, rent, or exchange campus essentials in one polished marketplace.
+        <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+          <div className="space-y-6">
+            <Badge variant="slate" className="gap-1.5 border border-white/10 bg-white/5 text-white/80">
+              <Sparkles size={10} />
+              CampusShare platform
+            </Badge>
+            <div className="space-y-4">
+              <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                A premium campus marketplace for sharing, learning, and moving faster together.
               </h1>
-              <p className="max-w-2xl text-sm leading-6 text-white/75 sm:text-base">
-                Search faster, save items for later, compare similar products, and move through listings with a cleaner browsing experience.
+              <p className="max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
+                Buy and rent what you need, share study notes, and keep the entire student ecosystem in one polished, responsive experience.
               </p>
             </div>
 
-            <form onSubmit={handleSearchSubmit} className="space-y-3">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <label className="relative flex-1">
-                  <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    value={filters.q}
-                    onChange={e => updateFilter('q', e.target.value)}
-                    placeholder="Search products, categories, or sellers"
-                    className="h-12 w-full rounded-2xl border border-white/10 bg-white/10 pl-11 pr-4 text-sm text-white placeholder:text-white/45 outline-none transition-colors focus:border-white/30 focus:bg-white/15"
-                  />
-                </label>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              {user ? (
+                <Link to="/create" className="btn h-12 gap-2 rounded-2xl px-5">
+                  List an item
+                  <ArrowRight size={16} />
+                </Link>
+              ) : (
+                <Link to="/register" className="btn h-12 gap-2 rounded-2xl px-5">
+                  Get started
+                  <ArrowRight size={16} />
+                </Link>
+              )}
+              <a href="#featured" className="btn-secondary h-12 gap-2 rounded-2xl px-5">
+                Explore featured
+                <Search size={16} />
+              </a>
+            </div>
 
-                <button type="submit" className="btn h-12 gap-2 rounded-2xl px-5">
-                  <Search size={16} />
-                  Search
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setFiltersOpen(open => !open)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur transition-colors hover:bg-white/10"
-                >
-                  <SlidersHorizontal size={12} />
-                  Advanced filters
-                  {activeFilterCount > 0 && (
-                    <span className="rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </button>
-
-                {recentSearches.map(term => (
-                  <button
-                    key={term}
-                    type="button"
-                    onClick={() => {
-                      updateFilter('q', term)
-                      saveSearch(term)
-                    }}
-                    className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:bg-white/10"
-                  >
-                    {term}
-                  </button>
-                ))}
-              </div>
-            </form>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <HeroStat label="Active listings" value={formatCount(heroStats.listings)} icon={Package} />
+              <HeroStat label="Study notes" value={formatCount(heroStats.notes)} icon={BookOpen} />
+              <HeroStat label="Categories" value={formatCount(heroStats.categories)} icon={Layers3} />
+              <HeroStat label="Highlights" value={formatCount(heroStats.highlights)} icon={Zap} />
+            </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Listings</p>
-              <div className="mt-2 flex items-end justify-between gap-3">
-                <div className="text-3xl font-bold">{totalResults}</div>
-                <PackageSearch size={22} className="text-white/55" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="card-glass border-white/10 bg-white/10 text-white shadow-2xl shadow-slate-950/20">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-white/45">Live snapshot</p>
+                  <h2 className="mt-2 text-xl font-semibold">Community pulse</h2>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-3">
+                  <Sparkles size={18} />
+                </div>
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Marketplace activity</p>
+                  <p className="mt-2 text-2xl font-bold">{formatCount(heroStats.listings)}</p>
+                  <p className="mt-1 text-sm text-white/70">Fresh listings waiting to be discovered.</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Study resources</p>
+                  <p className="mt-2 text-2xl font-bold">{formatCount(heroStats.notes)}</p>
+                  <p className="mt-1 text-sm text-white/70">Public notes ready for quick preview and download.</p>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Saved</p>
-              <div className="mt-2 flex items-end justify-between gap-3">
-                <div className="text-3xl font-bold">{totalSaved}</div>
-                <Bookmark size={22} className="text-white/55" />
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Wishlist</p>
-              <div className="mt-2 flex items-end justify-between gap-3">
-                <div className="text-3xl font-bold">{totalWishlist}</div>
-                <Heart size={22} className="text-white/55" />
+            <div className="card-glass border-white/10 bg-white text-slate-900 shadow-2xl shadow-slate-950/20">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Why it works</p>
+              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  Built for quick browsing on mobile and desktop
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  Reuses the same brand language across the platform
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  Loads only a small live preview set for fast initial render
+                </li>
+              </ul>
+              <div className="mt-5 rounded-2xl bg-slate-50 p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-slate-400">CampusShare</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Premium UI, verified community signals, and one shared place for resource exchange.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Saved listings</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Quickly revisit items you bookmarked for later.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="brand">{totalSaved} saved</Badge>
-            <Badge variant="red">{totalWishlist} wishlisted</Badge>
-          </div>
-        </div>
-
-        {savedLoading ? (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="min-w-[300px] w-[300px]">
-                <SkeletonCard />
-              </div>
-            ))}
-          </div>
-        ) : savedListings.length ? (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {savedListings.map(item => (
-              <div key={item.id} className="min-w-[300px] w-[300px] flex-shrink-0">
-                <ListingCard
-                  item={item}
-                  user={user}
-                  listMode
-                  isWishlisted={wishlistIds.has(String(item.id))}
-                  isSaved={savedIds.has(String(item.id))}
-                  onToggleWishlist={toggleWishlist}
-                  onToggleSaved={toggleSaved}
-                />
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow="Statistics"
+          title="A quick pulse on what the campus is sharing"
+          description="Live counts from the platform give the landing page a data-backed feel without loading heavy content."
+        />
+        {loading ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="card animate-pulse space-y-3">
+                <div className="skeleton h-8 w-8 rounded-2xl" />
+                <div className="skeleton h-8 w-20 rounded-xl" />
+                <div className="skeleton h-3 w-28 rounded-lg" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="card">
-            <EmptyState
-              icon={BookmarkCheck}
-              title="No saved listings yet"
-              description="Use the bookmark action on any product card to build a shortlist here."
-              action={
-                <button type="button" onClick={() => setFiltersOpen(true)} className="btn gap-2">
-                  <Filter size={14} />
-                  Open filters
-                </button>
-              }
-            />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="card">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Listings</p>
+              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+                {formatCount(heroStats.listings)}
+              </p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Active marketplace opportunities</p>
+            </div>
+            <div className="card">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Notes</p>
+              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+                {formatCount(heroStats.notes)}
+              </p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Public study PDFs ready to preview</p>
+            </div>
+            <div className="card">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Categories</p>
+              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+                {formatCount(heroStats.categories)}
+              </p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Browse across campus needs</p>
+            </div>
+            <div className="card">
+              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Highlights</p>
+              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+                {formatCount(heroStats.highlights)}
+              </p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Featured items on the landing page</p>
+            </div>
           </div>
         )}
       </section>
 
-      <section className="card space-y-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Browse listings</h2>
-              <Badge variant="slate">{totalResults} total</Badge>
-            </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Filter by category, type, condition, or price. Results update instantly as you refine the search.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-                viewMode === 'grid'
-                  ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
-              }`}
-            >
-              <LayoutGrid size={14} />
-              Grid
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-                viewMode === 'list'
-                  ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-                  : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
-              }`}
-            >
-              <List size={14} />
-              List
-            </button>
-            <button
-              type="button"
-              onClick={() => setFiltersOpen(open => !open)}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-            >
-              <SlidersHorizontal size={14} />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-semibold text-white">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-            >
-              <RefreshCw size={14} />
-              Reset
-            </button>
-          </div>
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow="Feature showcase"
+          title="Everything students need, presented with a premium SaaS feel"
+          description="A more intentional interface helps students move from discovery to action without friction."
+        />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {FEATURES.map(feature => (
+            <FeatureCard key={feature.title} {...feature} />
+          ))}
         </div>
+      </section>
 
-        {filtersOpen && (
-          <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Advanced filters</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Narrow down listings without losing the browsing flow.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setFiltersOpen(false)}
-                className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-white hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-              <label className="space-y-1.5">
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Category</span>
-                <select
-                  value={filters.categoryId}
-                  onChange={e => updateFilter('categoryId', e.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                >
-                  <option value="">All categories</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="space-y-1.5">
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Type</span>
-                <select
-                  value={filters.type}
-                  onChange={e => updateFilter('type', e.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                >
-                  <option value="">All types</option>
-                  {TYPE_OPTIONS.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="space-y-1.5">
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Condition</span>
-                <select
-                  value={filters.condition}
-                  onChange={e => updateFilter('condition', e.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                >
-                  <option value="">Any condition</option>
-                  {CONDITION_OPTIONS.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="space-y-1.5">
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Min price</span>
-                <input
-                  value={filters.minPrice}
-                  onChange={e => updateFilter('minPrice', e.target.value)}
-                  inputMode="numeric"
-                  placeholder="0"
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </label>
-
-              <label className="space-y-1.5">
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Max price</span>
-                <input
-                  value={filters.maxPrice}
-                  onChange={e => updateFilter('maxPrice', e.target.value)}
-                  inputMode="numeric"
-                  placeholder="No limit"
-                  className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </label>
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                Price presets
-              </span>
-              {PRICE_PRESETS.map(preset => {
-                const active = filters.minPrice === preset.minPrice && filters.maxPrice === preset.maxPrice
-                return (
-                  <FilterChip
-                    key={preset.label}
-                    label={preset.label}
-                    active={active}
-                    onClick={() => applyPreset(preset)}
-                  />
-                )
-              })}
-            </div>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                Active filters
-              </span>
-              {filters.q && (
-                <Badge variant="brand" className="gap-1.5">
-                  Query: {filters.q}
-                </Badge>
-              )}
-              {filters.categoryId && (
-                <Badge variant="blue">
-                  Category #{filters.categoryId}
-                </Badge>
-              )}
-              {filters.type && <Badge variant="emerald">{filters.type}</Badge>}
-              {filters.condition && <Badge variant="amber">{filters.condition}</Badge>}
-              {filters.minPrice && <Badge variant="slate">Min Rs. {filters.minPrice}</Badge>}
-              {filters.maxPrice && <Badge variant="slate">Max Rs. {filters.maxPrice}</Badge>}
-            </div>
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/40">
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            <Star size={14} className="text-amber-500" />
-            Showing {items.length} of {totalResults} listings
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            {SORT_OPTIONS.map(option => {
-              const Icon = option.icon
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    setPage(0)
-                    setSortBy(option.value)
-                  }}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    sortBy === option.value
-                      ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-                      : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
-                  }`}
-                >
-                  <Icon size={11} />
-                  {option.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
+      <section id="featured" className="space-y-6">
+        <SectionHeading
+          eyebrow="Featured marketplace"
+          title="Live listings from the campus marketplace"
+          description="A small, curated set of active listings keeps the landing page fast while still showing real inventory."
+        />
         {loading ? (
-          <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-4'}>
-            {Array.from({ length: 6 }).map((_, index) => (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
               <SkeletonCard key={index} />
             ))}
           </div>
-        ) : error ? (
-          <div className="card">
-            <EmptyState
-              icon={PackageSearch}
-              title="Marketplace unavailable"
-              description={error}
-              action={
-                <button type="button" onClick={clearFilters} className="btn gap-2">
-                  <RefreshCw size={14} />
-                  Try again
-                </button>
-              }
-            />
-          </div>
-        ) : items.length ? (
-          <div className={viewMode === 'grid' ? 'grid gap-4 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-4'}>
-            {items.map(item => (
-              <ListingCard
-                key={item.id}
-                item={item}
-                user={user}
-                listMode={viewMode === 'list'}
-                isWishlisted={wishlistIds.has(String(item.id))}
-                isSaved={savedIds.has(String(item.id))}
-                onToggleWishlist={toggleWishlist}
-                onToggleSaved={toggleSaved}
-                onRequestSuccess={() => {
-                  setPage(0)
-                }}
-              />
+        ) : featuredListings.length ? (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {featuredListings.map(item => (
+              <ListingCard key={item.id} item={item} user={user} />
             ))}
           </div>
         ) : (
-          <div className="card">
-            <EmptyState
-              icon={PackageSearch}
-              title="No listings matched your search"
-              description="Try widening the price range, switching categories, or clearing the filters."
-              action={
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  <button type="button" onClick={clearFilters} className="btn gap-2">
-                    <RefreshCw size={14} />
-                    Clear filters
-                  </button>
-                  <Link to="/create" className="btn btn-secondary gap-2">
-                    List an item
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-              }
-            />
-          </div>
+          <EmptyState
+            icon={Package}
+            title="No featured listings right now"
+            description="Listings will appear here as soon as active marketplace items are available."
+            action={
+              <Link to={user ? '/create' : '/register'} className="btn gap-2">
+                {user ? 'Create a listing' : 'Get started'}
+                <ArrowRight size={14} />
+              </Link>
+            }
+          />
         )}
+      </section>
 
-        <div className="pt-2">
-          <Pagination page={page} totalPages={meta.totalPages || 0} onPageChange={setPage} />
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow="Testimonials"
+          title="Students get a cleaner experience, and it shows"
+          description="A polished interface helps users trust the platform and move more confidently through each resource."
+        />
+        <div className="grid gap-4 lg:grid-cols-3">
+          {TESTIMONIALS.map(testimonial => (
+            <TestimonialCard key={testimonial.name} {...testimonial} />
+          ))}
         </div>
       </section>
+
+      <section className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Common questions, answered clearly"
+          description="A focused FAQ helps first-time visitors understand how CampusShare fits into the student workflow."
+        />
+        <div className="space-y-3">
+          {FAQS.map((item, index) => (
+            <FaqItem
+              key={item.question}
+              item={item}
+              open={faqOpen === index}
+              onToggle={() => setFaqOpen(faqOpen === index ? -1 : index)}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-brand-600 via-brand-700 to-emerald-600 px-6 py-10 text-white shadow-2xl shadow-brand-700/20 sm:px-8 lg:px-10">
+        <div className="absolute inset-0 opacity-60">
+          <div className="absolute -left-8 top-0 h-52 w-52 rounded-full bg-white/15 blur-3xl" />
+          <div className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-emerald-300/15 blur-3xl" />
+        </div>
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Call to action</p>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              Ready to share resources with a smoother, more modern campus experience?
+            </h2>
+            <p className="text-sm leading-7 text-white/80 sm:text-base">
+              Start browsing now, or post your own listing when you are ready to contribute back to the community.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link to={user ? '/create' : '/register'} className="btn h-12 gap-2 rounded-2xl bg-white text-brand-700 hover:bg-white/95">
+              {user ? 'Create a listing' : 'Get started'}
+              <ArrowRight size={16} />
+            </Link>
+            <Link to="/notes" className="btn-secondary h-12 gap-2 rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15">
+              Browse notes
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="rounded-[28px] border border-slate-200 bg-white px-6 py-8 dark:border-slate-800 dark:bg-slate-900 sm:px-8">
+        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr_0.7fr_0.7fr]">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600">
+                <Heart size={18} className="text-white" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-slate-900 dark:text-white">CampusShare</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Shared campus resources, beautifully organized.</p>
+              </div>
+            </div>
+            <p className="max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+              A premium student marketplace for listings, notes, verification, orders, and conversations.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Explore</p>
+            <div className="mt-3 flex flex-col gap-2">
+              {quickLinks.map(link => (
+                <FooterLink key={link.to} to={link.to}>
+                  {link.label}
+                </FooterLink>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Account</p>
+            <div className="mt-3 flex flex-col gap-2">
+              <FooterLink to="/login">Sign in</FooterLink>
+              <FooterLink to="/register">Create account</FooterLink>
+              <FooterLink to="/verification">Verification</FooterLink>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Quick note</p>
+            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              Built to load quickly, scale cleanly, and keep the brand consistent across the platform.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-4 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} CampusShare. All rights reserved.</p>
+          <p>Designed for a fast, mobile-friendly campus resource exchange.</p>
+        </div>
+      </footer>
     </div>
   )
 }
