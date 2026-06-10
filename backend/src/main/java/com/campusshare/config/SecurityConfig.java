@@ -170,11 +170,16 @@ public class SecurityConfig {
                         // ── Fully public ──────────────────────────────────────
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/actuator/health",
+                                "/actuator/info",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/ws/**")
                         .permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/actuator/metrics", "/actuator/metrics/**")
+                        .authenticated()
 
                         // Public GET on browseable resources
                         .requestMatchers(HttpMethod.GET,

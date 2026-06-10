@@ -1,4 +1,7 @@
 spring:
+  application:
+    name: ${APP_NAME:Campus Resource Sharing Platform Backend}
+    version: ${APP_VERSION:1.0.0}
   config:
     import: optional:file:.env[.properties]
   datasource:
@@ -30,8 +33,10 @@ spring:
     multipart:
       max-file-size: 20MB
       max-request-size: 20MB
+
 server:
   port: ${SERVER_PORT:8080}
+
 app:
   admin:
     email: ${APP_ADMIN_EMAIL}
@@ -40,31 +45,43 @@ app:
     secret: ${JWT_SECRET}
     access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}
     refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://127.0.0.1:5173}
 
-# ── Logging ─────────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+    info:
+      enabled: true
+    metrics:
+      enabled: true
+
+info:
+  application:
+    name: ${APP_NAME:Campus Resource Sharing Platform Backend}
+    version: ${APP_VERSION:1.0.0}
+    environment: ${APP_ENV:local}
+
 logging:
   level:
     root: INFO
     com.campusshare: INFO
-    # Reduce noise from third-party libraries
     org.springframework.security: WARN
     org.hibernate.SQL: WARN
     org.hibernate.orm.jdbc.bind: WARN
     com.cloudinary: WARN
   pattern:
-    # Structured log line: timestamp | level | thread | logger (short) | message
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%t] %-40.40logger{39} : %m%n"
     file:    "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%t] %-40.40logger{39} : %m%n"
-  # Uncomment to persist logs to a rolling file in production:
-  # file:
-  #   name: logs/campusshare.log
-  # logback:
-  #   rollingpolicy:
-  #     max-file-size: 50MB
-  #     max-history: 30
