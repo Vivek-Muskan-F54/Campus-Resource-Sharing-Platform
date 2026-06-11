@@ -1,6 +1,6 @@
 # Production Deployment Guide
 
-This guide covers a clean production setup for the Campus Resource Sharing Platform.
+This guide covers a clean production setup for the Campus Resource Sharing Platform and links to the platform-specific deployment docs.
 
 ## 1. Prerequisites
 
@@ -50,6 +50,8 @@ For a complete description of each variable, see `backend/ENVIRONMENT_VARIABLES.
 VITE_API_URL=https://your-api-domain.com/api
 ```
 
+For a full environment walkthrough, see [ENVIRONMENT_SETUP.md](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/ENVIRONMENT_SETUP.md).
+
 ## 3. Database Setup
 
 1. Create the MySQL database:
@@ -91,6 +93,8 @@ Deploy the `dist/` folder to:
 - Nginx static hosting
 - Any CDN-backed static host
 
+For Vercel-specific steps, see [FRONTEND_DEPLOYMENT_VERCEL.md](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/FRONTEND_DEPLOYMENT_VERCEL.md).
+
 ## 6. Recommended Production Architecture
 
 - Nginx or Apache as TLS terminator
@@ -98,6 +102,18 @@ Deploy the `dist/` folder to:
 - React app served as static files
 - MySQL managed service or hardened VM
 - Cloudinary for all file storage
+
+For backend hosting on Render or Railway, see [BACKEND_DEPLOYMENT_RENDER_RAILWAY.md](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/BACKEND_DEPLOYMENT_RENDER_RAILWAY.md).
+For managed database setup and rollback planning, see [DATABASE_DEPLOYMENT_MANAGED_MYSQL.md](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/DATABASE_DEPLOYMENT_MANAGED_MYSQL.md).
+
+### Docker Review
+
+The repository's Docker setup is production-oriented:
+
+- [backend/Dockerfile](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/backend/Dockerfile) uses a multi-stage Maven build and runs the JAR as a non-root user.
+- [frontend/Dockerfile](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/frontend/Dockerfile) builds the Vite app into static files and serves them through nginx.
+- [frontend/nginx.conf](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/frontend/nginx.conf) proxies `/api/` and `/ws/` to the backend service, which makes `docker compose up` suitable for local production-like runs.
+- [docker-compose.yml](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/docker-compose.yml) wires backend, frontend, and MySQL together with environment-variable overrides.
 
 ## 7. Security Checklist
 
@@ -121,7 +137,32 @@ Before handover, verify:
 - QR handover completion
 - Admin moderation and analytics
 
-## 9. CI/CD
+## 8. Production Checklist
+
+- Docker images build successfully for backend and frontend
+- `mvn test` passes
+- `npm run build` passes
+- All secrets come from environment variables only
+- Frontend API and WebSocket URLs point to production domains
+- CORS allows only the production frontend domain
+- Managed MySQL backups are enabled and tested
+- Restore and rollback procedures are documented and rehearsed
+
+## 9. Backup Strategy
+
+- Enable automated managed MySQL backups with retention
+- Take a manual backup before every schema or release change
+- Store backups in a secure location with restricted access
+- Test restoration into a staging database on a schedule
+
+## 10. Rollback Strategy
+
+- Keep the previous backend container image or JAR artifact available
+- Keep the previous frontend Vercel deployment available for instant rollback
+- Prefer backward-compatible database changes so app rollbacks do not require data loss
+- If a migration is not reversible, prepare a tested restore plan before release
+
+## 11. CI/CD
 
 The repository includes GitHub Actions workflows under `.github/workflows/`:
 
@@ -153,7 +194,14 @@ Both workflows run on:
 - Build failures fail the frontend workflow immediately.
 - Artifacts are available from the workflow run page for release packaging or deployment.
 
-## 10. Submission Notes
+## 12. Deployment Guides
+
+- [Frontend: Vercel](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/FRONTEND_DEPLOYMENT_VERCEL.md)
+- [Backend: Render or Railway](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/BACKEND_DEPLOYMENT_RENDER_RAILWAY.md)
+- [Database: Managed MySQL](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/DATABASE_DEPLOYMENT_MANAGED_MYSQL.md)
+- [Environment Setup](/D:/JAVA/Campus%20Resource%20Sharing%20Platform/ENVIRONMENT_SETUP.md)
+
+## 13. Submission Notes
 
 For final year submission and placement review, include:
 
