@@ -121,7 +121,39 @@ Before handover, verify:
 - QR handover completion
 - Admin moderation and analytics
 
-## 9. Submission Notes
+## 9. CI/CD
+
+The repository includes GitHub Actions workflows under `.github/workflows/`:
+
+- `backend-ci.yml`
+- `frontend-ci.yml`
+
+### Triggers
+
+Both workflows run on:
+
+- Pull requests targeting `main`
+- Pushes to `main`
+
+### Backend Workflow
+
+- Runs `mvn -B test`
+- Builds the backend JAR with `mvn -B package -DskipTests`
+- Uploads the JAR as the `backend-jar` artifact
+
+### Frontend Workflow
+
+- Runs `npm ci`
+- Builds the frontend with `npm run build`
+- Uploads the `dist/` directory as the `frontend-dist` artifact
+
+### Notes
+
+- Test failures fail the backend workflow immediately.
+- Build failures fail the frontend workflow immediately.
+- Artifacts are available from the workflow run page for release packaging or deployment.
+
+## 10. Submission Notes
 
 For final year submission and placement review, include:
 
