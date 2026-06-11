@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify your email</title>
+</head>
+<body style="margin:0;background:#f8fafc;font-family:Arial,Helvetica,sans-serif;color:#0f172a;">
+<div style="max-width:640px;margin:0 auto;padding:32px 16px;">
+    <div style="background:#ffffff;border-radius:20px;padding:32px;border:1px solid #e2e8f0;">
+        <p style="margin:0 0 12px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#2563eb;font-weight:700;">CampusShare</p>
+        <h1 style="margin:0 0 16px;font-size:28px;line-height:1.2;">Verify your email address</h1>
+        <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#334155;">
+            Hi <span th:text="${name}">Student</span>, thanks for joining CampusShare. Please verify your email address to activate your account.
+        </p>
+        <div style="margin:0 0 28px;">
+            <a th:href="${actionUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:14px 22px;border-radius:12px;font-weight:700;">Verify email</a>
+        </div>
+        <p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#475569;">
+            If the button does not work, copy this link into your browser:
+        </p>
+        <p style="margin:0;font-size:14px;line-height:1.6;word-break:break-all;color:#2563eb;" th:text="${actionUrl}">link</p>
+        <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0;" />
+        <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">
+            If you did not create this account, you can ignore this email. For help, contact
+            <span th:text="${supportEmail}">support@example.com</span>.
+        </p>
+    </div>
+</div>
+</body>
+</html>

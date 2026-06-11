@@ -7,6 +7,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 const Marketplace = lazy(() => import('./pages/Marketplace'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Notes = lazy(() => import('./pages/Notes'))
 const Orders = lazy(() => import('./pages/Orders'))
 const CreateListing = lazy(() => import('./pages/CreateListing'))
@@ -34,6 +37,9 @@ export default function App() {
           <Route index element={<Marketplace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/notes" element={<Notes />} />
 
           <Route path="/create" element={

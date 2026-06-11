@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, ShoppingBag, AlertCircle } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Mail, Lock, Eye, EyeOff, ShoppingBag, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -10,6 +10,15 @@ export default function Login() {
   const [showPwd, setShowPwd] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const notice = params.has('registered')
+    ? 'Registration complete. Check your inbox to verify your email before signing in.'
+    : params.has('verified')
+      ? 'Your email has been verified. You can sign in now.'
+      : params.has('reset')
+        ? 'Your password was reset successfully. Please sign in with your new password.'
+        : ''
 
   const set = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
@@ -42,6 +51,12 @@ export default function Login() {
         </div>
 
         <div className="card space-y-5">
+          {notice && (
+            <div className="alert-success flex items-start gap-2">
+              <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0" />
+              <span>{notice}</span>
+            </div>
+          )}
           {error && (
             <div className="alert-error flex items-start gap-2">
               <AlertCircle size={15} className="mt-0.5 flex-shrink-0" />
@@ -114,6 +129,11 @@ export default function Login() {
             Don't have an account?{' '}
             <Link to="/register" className="font-medium text-brand-600 dark:text-brand-400 hover:underline">
               Create account
+            </Link>
+          </p>
+          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+            <Link to="/forgot-password" className="font-medium text-brand-600 dark:text-brand-400 hover:underline">
+              Forgot your password?
             </Link>
           </p>
         </div>

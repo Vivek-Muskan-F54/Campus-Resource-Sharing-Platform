@@ -1,13 +1,17 @@
 package com.campusshare.service.impl;
 
+import com.campusshare.domain.AuthToken;
+import com.campusshare.domain.Enums.AuthTokenPurpose;
 import com.campusshare.common.TokenRefreshException;
 import com.campusshare.domain.Enums.VerificationStatus;
 import com.campusshare.domain.RefreshToken;
 import com.campusshare.domain.User;
 import com.campusshare.dto.AuthDtos.*;
+import com.campusshare.repository.AuthTokenRepository;
 import com.campusshare.repository.RefreshTokenRepository;
 import com.campusshare.repository.UserRepository;
 import com.campusshare.security.JwtUtil;
+import com.campusshare.service.AuthMailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,23 +53,27 @@ class AuthServiceImplTest {
 
     @Mock private UserRepository users;
     @Mock private RefreshTokenRepository refreshTokens;
+    @Mock private AuthTokenRepository authTokens;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private UserDetailsService userDetailsService;
     @Mock private JwtUtil jwtUtil;
+    @Mock private AuthMailService authMailService;
 
     @InjectMocks private AuthServiceImpl authService;
 
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(authService, "accessExpirationMs", ACCESS_EXPIRATION_MS);
+        ReflectionTestUtils.setField(authService, "frontendUrl", "http://localhost:5173");
+        ReflectionTestUtils.setField(authService, "emailVerificationExpirationMs", 86_400_000L);
+        ReflectionTestUtils.setField(authService, "passwordResetExpirationMs", 1_800_000L);
     }
 
     @Test
-    @DisplayName("register creates a student, encodes the password, and returns tokens")
-    void register_createsUserAndReturnsAuthResponse() {
+    @DisplayName("register creates a student, encodes the password, and sends verification email")
+    void register_createsUserAndSendsVerificationEmail() {
         RegisterRequest request = new RegisterRequest("  Student One  ", "Student@Campus.edu", PASSWORD, "  CS/001  ");
-        UserDetails userDetails = securityUserDetails(EMAIL);
 
         when(users.existsByEmail(NORMALIZED_EMAIL)).thenReturn(false);
         when(passwordEncoder.encode(PASSWORD)).thenReturn("encoded-password");
@@ -74,34 +82,27 @@ class AuthServiceImplTest {
             user.setId(11L);
             return user;
         });
-        when(userDetailsService.loadUserByUsername(NORMALIZED_EMAIL)).thenReturn(userDetails);
-        when(jwtUtil.generateAccessToken(userDetails)).thenReturn(ACCESS_TOKEN);
-        when(jwtUtil.generateRefreshToken(userDetails)).thenReturn(REFRESH_TOKEN);
-        when(jwtUtil.extractExpiration(REFRESH_TOKEN)).thenReturn(Instant.parse("2030-01-01T00:00:00Z"));
-        when(refreshTokens.save(any(RefreshToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(authTokens.revokeAllByUserIdAndPurpose(anyLong(), eq(AuthTokenPurpose.EMAIL_VERIFICATION))).thenReturn(0);
+        when(authTokens.save(any(AuthToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        AuthResponse response = authService.register(request);
+        authService.register(request);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        ArgumentCaptor<AuthToken> tokenCaptor = ArgumentCaptor.forClass(AuthToken.class);
         verify(users).existsByEmail(NORMALIZED_EMAIL);
         verify(users).save(userCaptor.capture());
+        verify(authMailService).sendVerificationEmail(eq(userCaptor.getValue()), contains("/verify-email?token="));
+        verify(authTokens).save(tokenCaptor.capture());
 
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getName()).isEqualTo("Student One");
         assertThat(savedUser.getEmail()).isEqualTo(NORMALIZED_EMAIL);
         assertThat(savedUser.getPassword()).isEqualTo("encoded-password");
         assertThat(savedUser.getCollegeRollNumber()).isEqualTo("CS/001");
-
-        assertThat(response.token()).isEqualTo(ACCESS_TOKEN);
-        assertThat(response.accessToken()).isEqualTo(ACCESS_TOKEN);
-        assertThat(response.refreshToken()).isEqualTo(REFRESH_TOKEN);
-        assertThat(response.tokenType()).isEqualTo("Bearer");
-        assertThat(response.expiresIn()).isEqualTo(900L);
-        assertThat(response.id()).isEqualTo(11L);
-        assertThat(response.name()).isEqualTo("Student One");
-        assertThat(response.email()).isEqualTo(NORMALIZED_EMAIL);
-        assertThat(response.roles()).containsExactly("STUDENT");
-        assertThat(response.verificationStatus()).isEqualTo(VerificationStatus.PENDING.name());
+        assertThat(savedUser.getEmailVerified()).isFalse();
+        assertThat(tokenCaptor.getValue().getPurpose()).isEqualTo(AuthTokenPurpose.EMAIL_VERIFICATION);
+        assertThat(tokenCaptor.getValue().getUser().getId()).isEqualTo(11L);
+        assertThat(tokenCaptor.getValue().getTokenHash()).hasSize(64);
     }
 
     @Test

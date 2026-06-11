@@ -41,6 +41,12 @@ app:
   admin:
     email: ${APP_ADMIN_EMAIL}
     password: ${APP_ADMIN_PASSWORD}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  mail:
+    from: ${MAIL_FROM:no-reply@campusshare.local}
+  auth:
+    email-verification-expiration-ms: ${AUTH_EMAIL_VERIFICATION_EXPIRATION_MS:86400000}
+    password-reset-expiration-ms: ${AUTH_PASSWORD_RESET_EXPIRATION_MS:1800000}
   jwt:
     secret: ${JWT_SECRET}
     access-expiration-ms: ${JWT_ACCESS_EXPIRATION_MS:900000}

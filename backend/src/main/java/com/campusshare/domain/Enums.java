@@ -4,6 +4,7 @@ public final class Enums {
     private Enums() {}
     public enum Role { ADMIN, STUDENT }
     public enum VerificationStatus { PENDING, APPROVED, REJECTED }
+    public enum AuthTokenPurpose { EMAIL_VERIFICATION, PASSWORD_RESET }
     public enum ListingType { SELL, RENT, EXCHANGE }
     public enum ItemCondition { NEW, LIKE_NEW, GOOD, FAIR, POOR }
     public enum ListingStatus { ACTIVE, RESERVED, COMPLETED, REJECTED, DELETED }

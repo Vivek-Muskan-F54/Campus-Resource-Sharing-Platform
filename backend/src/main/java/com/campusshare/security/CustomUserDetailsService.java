@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.withUsername(user.getEmail())
                 .password(user.getPassword())
-                .disabled(!user.isEnabled())
+                .disabled(!user.isEnabled() || Boolean.FALSE.equals(user.getEmailVerified()))
                 .roles(user.getRoles().stream().map(Enum::name).toArray(String[]::new))
                 .build();
     }

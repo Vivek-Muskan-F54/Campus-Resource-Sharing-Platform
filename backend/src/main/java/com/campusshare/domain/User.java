@@ -13,6 +13,7 @@ public class User extends BaseEntity {
     @Column(nullable=false) private String password;
     @Column(nullable=false, length=30) private String collegeRollNumber;
     @Column(nullable=false) private boolean enabled = true;
+    @Column private Boolean emailVerified;
     @Column(nullable=false) private double averageRating = 0;
     @Column(nullable=false) private int ratingCount = 0;
     @Enumerated(EnumType.STRING) @Column(nullable=false) private VerificationStatus verificationStatus = VerificationStatus.PENDING;

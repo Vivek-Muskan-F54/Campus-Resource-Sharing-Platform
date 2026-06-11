@@ -45,9 +45,8 @@ export function AuthProvider({ children }) {
 
   const register = useCallback(async form => {
     const res = await authClient.post('/auth/register', form)
-    apply(res.data)
     return res.data
-  }, [apply])
+  }, [])
 
   /**
    * Logout:

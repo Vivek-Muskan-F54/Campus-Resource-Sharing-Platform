@@ -37,7 +37,7 @@ export default function Register() {
     setLoading(true)
     try {
       await register(form)
-      navigate('/verification', { replace: true })
+      navigate('/login?registered=1', { replace: true })
     } catch (err) {
       setError(err?.response?.data?.message || 'Registration failed. Please try again.')
     } finally {
