@@ -13,8 +13,9 @@ import EmptyState from '../components/ui/EmptyState'
 const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws'
 
 function MessageBubble({ message, mine }) {
-  const time = message.createdAt
-    ? new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const time = message.sentAt || message.createdAt
+  const timeLabel = time
+    ? new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : ''
 
   return (
@@ -38,8 +39,8 @@ function MessageBubble({ message, mine }) {
           )}
           <p className="leading-relaxed">{message.content}</p>
         </div>
-        {time && (
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 px-1">{time}</span>
+        {timeLabel && (
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 px-1">{timeLabel}</span>
         )}
       </div>
     </div>
@@ -51,6 +52,7 @@ export default function Chat() {
   const stompRef = useRef(null)
   const selectedUserIdRef = useRef('')
   const messagesEndRef = useRef(null)
+  const currentUserId = String(user?.id || '')
   const [onlineUsers, setOnlineUsers] = useState([])
   const [selectedUserId, setSelectedUserId] = useState('')
   const [messages, setMessages] = useState([])
@@ -58,19 +60,25 @@ export default function Chat() {
   const [connected, setConnected] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [error, setError] = useState('')
+
+  const visibleOnlineUsers = useMemo(
+    () => onlineUsers.filter(u => String(u.id) !== currentUserId),
+    [currentUserId, onlineUsers]
+  )
 
   const selectedUser = useMemo(
-    () => onlineUsers.find(u => String(u.id) === String(selectedUserId)) || null,
-    [onlineUsers, selectedUserId]
+    () => visibleOnlineUsers.find(u => String(u.id) === String(selectedUserId)) || null,
+    [selectedUserId, visibleOnlineUsers]
   )
 
   const filteredUsers = useMemo(() => {
-    if (!searchQuery) return onlineUsers
+    if (!searchQuery) return visibleOnlineUsers
     const q = searchQuery.toLowerCase()
-    return onlineUsers.filter(
+    return visibleOnlineUsers.filter(
       u => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
     )
-  }, [onlineUsers, searchQuery])
+  }, [searchQuery, visibleOnlineUsers])
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -94,7 +102,7 @@ export default function Chat() {
     if (!otherUserId) return
     try {
       const res = await chatApi.history(otherUserId, { page: 0, size: 50, sort: 'createdAt,asc' })
-      setMessages(res.data?.content || [])
+      setMessages(res.data?.messages || [])
       await chatApi.markRead(otherUserId)
     } catch {
       setMessages([])
@@ -145,23 +153,41 @@ export default function Chat() {
   }, [user?.email])
 
   useEffect(() => {
+    if (!selectedUserId) {
+      setMessages([])
+      return
+    }
+
+    if (currentUserId && String(selectedUserId) === currentUserId) {
+      setMessages([])
+      return
+    }
+
     if (selectedUserId) {
       loadHistory(selectedUserId)
       if (window.innerWidth < 768) setShowSidebar(false)
-    } else {
-      setMessages([])
     }
-  }, [selectedUserId])
+  }, [currentUserId, selectedUserId])
 
   const send = () => {
+    const recipientId = Number(selectedUserId)
     if (!draft.trim() || !selectedUserId || !stompRef.current?.connected) return
+    if (!Number.isInteger(recipientId) || recipientId <= 0) {
+      setError('Select a valid user before sending a message.')
+      return
+    }
+    if (currentUserId && String(recipientId) === currentUserId) {
+      setError("You can't send a message to yourself. Pick another user.")
+      return
+    }
+    setError('')
     stompRef.current.publish({
       destination: '/app/chat.send',
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token') || user?.token}`,
       },
       body: JSON.stringify({
-        recipientId: Number(selectedUserId),
+        recipientId,
         content: draft.trim(),
       }),
     })
@@ -220,7 +246,10 @@ export default function Chat() {
                   <button
                     key={person.id}
                     type="button"
-                    onClick={() => setSelectedUserId(String(person.id))}
+                    onClick={() => {
+                      setError('')
+                      setSelectedUserId(String(person.id))
+                    }}
                     className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
                       String(person.id) === String(selectedUserId)
                         ? 'bg-brand-50 dark:bg-brand-900/30'
@@ -257,7 +286,10 @@ export default function Chat() {
           <input
             className="w-full text-sm py-2"
             value={selectedUserId}
-            onChange={e => setSelectedUserId(e.target.value)}
+            onChange={e => {
+              setError('')
+              setSelectedUserId(e.target.value)
+            }}
             placeholder="Enter user ID..."
           />
         </div>
@@ -316,7 +348,7 @@ export default function Chat() {
           ) : (
             messages.map(msg => (
               <MessageBubble
-                key={msg.id || `${msg.senderId}-${msg.createdAt}`}
+                key={msg.id || `${msg.senderId}-${msg.sentAt || msg.createdAt}`}
                 message={msg}
                 mine={String(msg.senderId) === String(user?.id)}
               />
@@ -327,11 +359,19 @@ export default function Chat() {
 
         {/* Message input */}
         <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800">
+          {error && (
+            <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+              {error}
+            </div>
+          )}
           <div className="flex gap-2 items-end">
             <textarea
               className="flex-1 min-h-[42px] max-h-24 resize-none py-2.5 text-sm rounded-xl"
               value={draft}
-              onChange={e => setDraft(e.target.value)}
+              onChange={e => {
+                setError('')
+                setDraft(e.target.value)
+              }}
               placeholder={selectedUserId ? 'Type a message...' : 'Select a user first'}
               disabled={!selectedUserId}
               rows={1}

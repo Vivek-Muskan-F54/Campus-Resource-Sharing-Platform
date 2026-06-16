@@ -146,7 +146,10 @@ public class SecurityConfig {
                                 .policyDirectives(
                                         "default-src 'self'; " +
                                         "img-src 'self' https://res.cloudinary.com data:; " +
-                                        "connect-src 'self'; " +
+                                        // Allow local dev frontend/backend origins plus SockJS/WebSocket transports.
+                                        "connect-src 'self' http://localhost:5173 http://127.0.0.1:5173 " +
+                                        "http://localhost:8080 http://127.0.0.1:8080 " +
+                                        "ws://localhost:8080 ws://127.0.0.1:8080; " +
                                         "frame-ancestors 'none'"))
                         // Referrer-Policy: don't leak URL info to third parties
                         .referrerPolicy(referrer -> referrer
