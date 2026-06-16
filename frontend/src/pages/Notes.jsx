@@ -666,7 +666,7 @@ export default function Notes() {
     setDownloadingNoteId(note.id)
     try {
       await noteApi.recordDownload(note.id).catch(() => {})
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+      const apiBase = import.meta.env.VITE_API_URL || 'https://campus-resource-sharing-platform.onrender.com/api'
       window.open(`${apiBase}/notes/${note.id}/download`, '_blank', 'noopener,noreferrer')
       setNotes(current =>
         current.map(item =>

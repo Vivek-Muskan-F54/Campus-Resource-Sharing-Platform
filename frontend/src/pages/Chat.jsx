@@ -10,7 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import Avatar from '../components/ui/Avatar'
 import EmptyState from '../components/ui/EmptyState'
 
-const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws'
+const wsUrl = import.meta.env.VITE_WS_URL || 'wss://campus-resource-sharing-platform.onrender.com/ws'
 
 function MessageBubble({ message, mine }) {
   const time = message.sentAt || message.createdAt

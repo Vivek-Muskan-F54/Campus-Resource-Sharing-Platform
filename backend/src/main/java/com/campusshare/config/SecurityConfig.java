@@ -63,7 +63,7 @@ public class SecurityConfig {
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
     private final RestAccessDeniedHandler accessDeniedHandler;
 
-    @Value("${cors.allowed-origins:http://localhost:5173,http://127.0.0.1:5173}")
+    @Value("${cors.allowed-origins:https://campus-resource-sharing-platform.vercel.app}")
     private String allowedOrigins;
 
     // ── Beans ─────────────────────────────────────────────────────────────────
@@ -146,10 +146,9 @@ public class SecurityConfig {
                                 .policyDirectives(
                                         "default-src 'self'; " +
                                         "img-src 'self' https://res.cloudinary.com data:; " +
-                                        // Allow local dev frontend/backend origins plus SockJS/WebSocket transports.
-                                        "connect-src 'self' http://localhost:5173 http://127.0.0.1:5173 " +
-                                        "http://localhost:8080 http://127.0.0.1:8080 " +
-                                        "ws://localhost:8080 ws://127.0.0.1:8080; " +
+                                        "connect-src 'self' https://campus-resource-sharing-platform.vercel.app " +
+                                        "https://campus-resource-sharing-platform.onrender.com " +
+                                        "wss://campus-resource-sharing-platform.onrender.com; " +
                                         "frame-ancestors 'none'"))
                         // Referrer-Policy: don't leak URL info to third parties
                         .referrerPolicy(referrer -> referrer
