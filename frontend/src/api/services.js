@@ -1,4 +1,3 @@
-
 import api, { authClient } from './client'
 
 export const authApi = {
