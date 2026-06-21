@@ -24,6 +24,7 @@ import {
 import {
   Area,
   AreaChart,
+  CartesianGrid,
   Bar,
   BarChart,
   Cell,
