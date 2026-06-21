@@ -1,3 +1,4 @@
+
 import api, { authClient } from './client'
 
 export const authApi = {
@@ -7,6 +8,7 @@ export const authApi = {
   register: d => authClient.post('/auth/register', d),
   refresh: d => authClient.post('/auth/refresh', d),
   logout:  d => authClient.post('/auth/logout',  d),
+  me:      () => api.get('/auth/me'),
   verifyEmail: d => authClient.post('/auth/verify-email', d),
   resendVerification: d => authClient.post('/auth/resend-verification', d),
   forgotPassword: d => authClient.post('/auth/forgot-password', d),

@@ -3,23 +3,23 @@ import { notificationApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
 
 export function useNotifications() {
-  const { user } = useAuth()
+  const { user, ready } = useAuth()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
 
   const loadUnreadCount = useCallback(async () => {
-    if (!user) return
+    if (!user || !ready) return
     try {
       const res = await notificationApi.unreadCount()
       setUnreadCount(res.data?.count ?? 0)
     } catch {
       // silently fail
     }
-  }, [user])
+  }, [ready, user])
 
   const loadNotifications = useCallback(async () => {
-    if (!user) return
+    if (!user || !ready) return
     setLoading(true)
     try {
       const res = await notificationApi.all({ page: 0, size: 20 })
@@ -29,7 +29,7 @@ export function useNotifications() {
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [ready, user])
 
   const markRead = useCallback(async id => {
     try {
@@ -44,10 +44,11 @@ export function useNotifications() {
   }, [])
 
   useEffect(() => {
+    if (!ready) return
     loadUnreadCount()
     const interval = setInterval(loadUnreadCount, 30000)
     return () => clearInterval(interval)
-  }, [loadUnreadCount])
+  }, [loadUnreadCount, ready])
 
   return { notifications, unreadCount, loading, loadNotifications, markRead, loadUnreadCount }
 }

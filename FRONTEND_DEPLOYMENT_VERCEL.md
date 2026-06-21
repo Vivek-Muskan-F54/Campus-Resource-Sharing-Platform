@@ -18,7 +18,7 @@ Set these in the Vercel project settings:
 
 ```bash
 VITE_API_URL=https://your-backend-domain.com/api
-VITE_WS_URL=wss://your-backend-domain.com/ws
+VITE_WS_URL=https://your-backend-domain.com/ws
 ```
 
 Optional variables can be added if the frontend ever needs them, but these two are the minimum for production.
@@ -43,8 +43,7 @@ Optional variables can be added if the frontend ever needs them, but these two a
 
 - `npm run build` succeeds locally and in CI
 - `VITE_API_URL` points at the production backend
-- `VITE_WS_URL` uses the production WebSocket endpoint
+- `VITE_WS_URL` uses the production SockJS endpoint over `https://`
 - Login, register, verification, and password reset links resolve correctly
 - CORS on the backend allows the Vercel domain
 - Images, notes, and marketplace flows load correctly in a browser
-

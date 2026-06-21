@@ -1,6 +1,7 @@
 package com.campusshare.service.impl;
 
 import com.campusshare.common.BadRequestException;
+import com.campusshare.common.ResourceNotFoundException;
 import com.campusshare.common.TokenRefreshException;
 import com.campusshare.domain.AuthToken;
 import com.campusshare.domain.Enums.AuthTokenPurpose;
@@ -140,6 +141,26 @@ public class AuthServiceImpl implements AuthService {
             log.warn("event=auth_token_refresh_error type={}", exception.getClass().getSimpleName());
             throw new TokenRefreshException("Invalid or expired refresh token");
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MeResponse me(String email) {
+        User user = users.findByEmail(normalizeEmail(email))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Set<String> roles = user.getRoles().stream()
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+
+        return new MeResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                roles,
+                user.getVerificationStatus().name(),
+                user.isEnabled()
+        );
     }
 
     @Override

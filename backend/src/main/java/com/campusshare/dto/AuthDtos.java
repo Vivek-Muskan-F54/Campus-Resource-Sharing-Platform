@@ -119,4 +119,17 @@ public final class AuthDtos {
             Set<String> roles,
             String verificationStatus
     ) {}
+
+    /**
+     * Lightweight authenticated-user snapshot used by the frontend to
+     * validate and hydrate an existing session on app startup.
+     */
+    public record MeResponse(
+            Long id,
+            String name,
+            String email,
+            Set<String> roles,
+            String verificationStatus,
+            boolean enabled
+    ) {}
 }

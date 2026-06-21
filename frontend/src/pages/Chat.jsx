@@ -10,7 +10,12 @@ import { useAuth } from '../context/AuthContext'
 import Avatar from '../components/ui/Avatar'
 import EmptyState from '../components/ui/EmptyState'
 
-const wsUrl = import.meta.env.VITE_WS_URL || 'wss://campus-resource-sharing-platform.onrender.com/ws'
+const normalizeSockJsUrl = rawUrl =>
+  (rawUrl || 'https://campus-resource-sharing-platform.onrender.com/ws')
+    .replace(/^wss:/i, 'https:')
+    .replace(/^ws:/i, 'http:')
+
+const wsUrl = normalizeSockJsUrl(import.meta.env.VITE_WS_URL)
 
 function MessageBubble({ message, mine }) {
   const time = message.sentAt || message.createdAt
@@ -118,10 +123,11 @@ export default function Chat() {
   useEffect(() => {
     if (!user?.token && !localStorage.getItem('token')) return
 
+    const authToken = localStorage.getItem('token') || user?.token
     const client = new Client({
       webSocketFactory: () => new SockJS(wsUrl),
       connectHeaders: {
-        Authorization: `Bearer ${localStorage.getItem('token') || user?.token}`,
+        Authorization: `Bearer ${authToken}`,
       },
       reconnectDelay: 3000,
       onConnect: () => {
@@ -150,7 +156,7 @@ export default function Chat() {
     client.activate()
     stompRef.current = client
     return () => { client.deactivate(); stompRef.current = null }
-  }, [user?.email])
+  }, [user?.email, user?.token])
 
   useEffect(() => {
     if (!selectedUserId) {

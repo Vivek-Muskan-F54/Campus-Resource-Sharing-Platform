@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { authApi } from '../api/services'
 import { authClient } from '../api/client'
 
 const AuthContext = createContext(null)
@@ -29,11 +30,56 @@ const readUser = () => {
 // ─── Provider ─────────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(readUser)
+  const [ready, setReady] = useState(false)
 
   // Persist the full auth response (tokens + user info) and update React state
   const apply = useCallback(data => {
     persistSession(data)
     setUser(data)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const hydrateSession = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        clearSession()
+        if (!cancelled) {
+          setUser(null)
+          setReady(true)
+        }
+        return
+      }
+
+      try {
+        const { data } = await authApi.me()
+        if (cancelled) return
+
+        const hydrated = {
+          ...data,
+          token,
+          accessToken: token,
+          refreshToken: localStorage.getItem('refreshToken') || '',
+        }
+
+        persistSession(hydrated)
+        setUser(hydrated)
+      } catch {
+        if (cancelled) return
+        clearSession()
+        setUser(null)
+      } finally {
+        if (!cancelled) {
+          setReady(true)
+        }
+      }
+    }
+
+    hydrateSession()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const login = useCallback(async form => {
@@ -78,10 +124,11 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      ready,
       isAdmin:         user?.roles?.includes('ADMIN')  ?? false,
       isAuthenticated: !!user,
     }),
-    [user, login, register, logout]
+    [user, login, register, logout, ready]
   )
 
   return (
