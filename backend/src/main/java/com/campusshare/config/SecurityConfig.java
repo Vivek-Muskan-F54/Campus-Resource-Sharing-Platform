@@ -107,9 +107,44 @@ public class SecurityConfig {
         return source;
     }
 
+    @Bean
+    @org.springframework.core.annotation.Order(1)
+    public SecurityFilterChain notePreviewSecurityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher("/api/notes/*/preview")
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.disable())
+                        .contentTypeOptions(cto -> {})
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000))
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives(
+                                        "default-src 'self'; " +
+                                        "img-src 'self' https://res.cloudinary.com data:; " +
+                                        "connect-src 'self' https://campus-resource-sharing-platform.vercel.app " +
+                                        "https://campus-resource-sharing-platform.onrender.com " +
+                                        "wss://campus-resource-sharing-platform.onrender.com; " +
+                                        "frame-ancestors https://campus-resource-sharing-platform.vercel.app"))
+                        .referrerPolicy(referrer -> referrer
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .permissionsPolicy(permissions -> permissions
+                                .policy("camera=(), microphone=(), geolocation=(), payment=()"))
+                )
+                .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
+                .build();
+    }
+
     // ── Filter chain ──────────────────────────────────────────────────────────
 
     @Bean
+    @org.springframework.core.annotation.Order(2)
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthenticationProvider authenticationProvider) throws Exception {
