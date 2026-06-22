@@ -16,6 +16,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -67,9 +68,10 @@ public class NoteController {
     }
 
     @GetMapping("/{noteId}/preview")
-    public ResponseEntity<Resource> preview(@PathVariable Long noteId) {
+    public ResponseEntity<Resource> preview(Authentication authentication, @PathVariable Long noteId) {
         log.info("Preview requested for note {}", noteId);
-        NoteResponse note = noteService.getById(noteId);
+        boolean isAdmin = authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        NoteResponse note = isAdmin ? noteService.getAnyById(noteId) : noteService.getById(noteId);
         log.info("Serving note preview: id={} fileUrl={}", noteId, note.fileUrl());
         return proxyPdf(resolvePdfUrl(note.fileUrl()), note.originalFilename(), false);
     }
@@ -130,11 +132,6 @@ public class NoteController {
                 throw new BadRequestException("Cloudinary returned an empty PDF");
             }
 
-            MediaType contentType = response.getHeaders().getContentType();
-            if (contentType == null) {
-                contentType = MediaType.APPLICATION_PDF;
-            }
-
             ContentDisposition disposition = (attachment
                     ? ContentDisposition.attachment()
                     : ContentDisposition.inline())
@@ -145,12 +142,12 @@ public class NoteController {
                     .build();
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(contentType);
+            headers.setContentType(MediaType.APPLICATION_PDF);
             headers.setContentLength(body.length);
             headers.setContentDisposition(disposition);
 
             log.info("Cloudinary PDF fetched successfully for note fileUrl={} contentType={} bytes={}",
-                    fileUrl, contentType, body.length);
+                    fileUrl, MediaType.APPLICATION_PDF, body.length);
             return ResponseEntity.ok().headers(headers).body(new ByteArrayResource(body));
         } catch (IllegalArgumentException ex) {
             log.warn("Invalid note PDF URL: {}", fileUrl);

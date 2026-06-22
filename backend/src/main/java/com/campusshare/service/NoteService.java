@@ -15,6 +15,8 @@ public interface NoteService {
 
     NoteResponse getById(Long noteId);
 
+    NoteResponse getAnyById(Long noteId);
+
     NoteResponse uploadPdf(String email, NoteCreateRequest request, MultipartFile file);
 
     NoteResponse createFromExistingFileUrl(String email, NoteCreateRequest request);

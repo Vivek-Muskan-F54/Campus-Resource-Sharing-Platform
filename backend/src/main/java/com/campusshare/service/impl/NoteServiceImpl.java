@@ -66,6 +66,14 @@ public class NoteServiceImpl implements NoteService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public NoteResponse getAnyById(Long noteId) {
+        Note note = notes.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
+        return toResponse(note);
+    }
+
+    @Override
     public NoteResponse uploadPdf(String email, NoteCreateRequest request, MultipartFile file) {
         // Validate: type, magic bytes, size
         FileValidationUtil.validatePdf(file, MAX_NOTE_SIZE);
