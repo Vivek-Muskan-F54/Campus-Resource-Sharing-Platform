@@ -85,6 +85,11 @@ public class AdminController {
         return adminService.notes(status, pageable);
     }
 
+    @PostMapping("/notes/{id}/approve")
+    public NoteResponse approveNote(@PathVariable Long id) {
+        return adminService.approveNote(id);
+    }
+
     @DeleteMapping("/notes/{id}")
     public void removeNote(@PathVariable Long id) {
         adminService.removeNote(id);

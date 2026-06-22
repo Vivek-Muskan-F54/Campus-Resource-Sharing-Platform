@@ -74,6 +74,7 @@ export const adminApi = {
   products: params => api.get('/admin/products', { params }),
   removeProduct: id => api.delete(`/admin/products/${id}`),
   notes: params => api.get('/admin/notes', { params }),
+  approveNote: id => api.post(`/admin/notes/${id}/approve`),
   removeNote: id => api.delete(`/admin/notes/${id}`),
 }
 

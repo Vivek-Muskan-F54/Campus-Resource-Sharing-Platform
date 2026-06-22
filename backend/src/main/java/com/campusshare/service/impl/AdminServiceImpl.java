@@ -7,6 +7,7 @@ import com.campusshare.domain.Enums.ModerationStatus;
 import com.campusshare.domain.Enums.NotificationType;
 import com.campusshare.domain.Enums.VerificationStatus;
 import com.campusshare.dto.AdminDtos.*;
+import com.campusshare.dto.NoteDtos.NoteModerationRequest;
 import com.campusshare.dto.NoteDtos.NoteResponse;
 import com.campusshare.dto.ProductDtos.ProductResponse;
 import com.campusshare.repository.*;
@@ -116,10 +117,16 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public NoteResponse approveNote(Long noteId) {
+        return noteService.moderate(noteId, new NoteModerationRequest(ModerationStatus.APPROVED, "Approved by admin"));
+    }
+
+    @Override
     public void removeNote(Long noteId) {
         Note note = notes.findById(noteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
         note.setStatus(ModerationStatus.REJECTED);
+        note.setModeratedAt(Instant.now());
         note.setModerationRemarks("Removed by admin");
         notes.save(note);
     }

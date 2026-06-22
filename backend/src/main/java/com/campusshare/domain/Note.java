@@ -23,6 +23,7 @@ public class Note extends BaseEntity {
     @Column(name = "content_type", length = 100) private String contentType;
     @Column(name = "file_size") private Long fileSize;
     @Enumerated(EnumType.STRING) @Column(nullable=false, length = 20) private ModerationStatus status = ModerationStatus.PENDING;
+    @Column(name = "moderated_at") private java.time.Instant moderatedAt;
     @Column(name = "moderation_remarks", length = 500) private String moderationRemarks;
     @Column(name = "download_count", nullable=false) private long downloadCount = 0;
 }

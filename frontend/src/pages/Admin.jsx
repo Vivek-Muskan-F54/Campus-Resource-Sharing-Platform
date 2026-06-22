@@ -947,6 +947,16 @@ export default function Admin() {
                       )}
                     </div>
                     <div className="flex gap-2">
+                      {note.status === 'PENDING' && (
+                        <button
+                          disabled={actionLoading === note.id}
+                          onClick={() => act(() => adminApi.approveNote(note.id), note.id)}
+                          className="btn-emerald gap-1.5 text-sm"
+                        >
+                          <CheckCircle2 size={13} />
+                          Approve
+                        </button>
+                      )}
                       {note.fileUrl && (
                         <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary gap-1.5 text-sm">
                           <Eye size={13} />

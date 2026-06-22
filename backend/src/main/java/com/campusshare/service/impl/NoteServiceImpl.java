@@ -23,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -118,6 +120,7 @@ public class NoteServiceImpl implements NoteService {
         Note note = notes.findById(noteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
         note.setStatus(request.status());
+        note.setModeratedAt(Instant.now());
         note.setModerationRemarks(request.remarks());
         Note saved = notes.save(note);
         log.info("Note moderated: id={} status={}", noteId, request.status());

@@ -23,5 +23,6 @@ public interface AdminService {
     Page<ProductResponse> products(ListingStatus status, Pageable pageable);
     void removeProduct(Long productId);
     Page<NoteResponse> notes(ModerationStatus status, Pageable pageable);
+    NoteResponse approveNote(Long noteId);
     void removeNote(Long noteId);
 }
