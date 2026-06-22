@@ -71,7 +71,7 @@ public class NoteServiceImpl implements NoteService {
         FileValidationUtil.validatePdf(file, MAX_NOTE_SIZE);
 
         String safeFilename = FileValidationUtil.sanitiseFilename(file.getOriginalFilename());
-        StorageUploadResult uploaded = storage.upload(file, "campus-share/notes", "auto");
+        StorageUploadResult uploaded = storage.upload(file, "campus-share/notes", "raw");
 
         Note note = buildBaseNote(email, request);
         note.setFileUrl(uploaded.url());

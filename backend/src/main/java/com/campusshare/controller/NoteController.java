@@ -71,7 +71,7 @@ public class NoteController {
         log.info("Preview requested for note {}", noteId);
         NoteResponse note = noteService.getById(noteId);
         log.info("Serving note preview: id={} fileUrl={}", noteId, note.fileUrl());
-        return proxyPdf(note.fileUrl(), note.originalFilename(), false);
+        return proxyPdf(resolvePdfUrl(note.fileUrl()), note.originalFilename(), false);
     }
 
     @GetMapping("/{noteId}/download")
@@ -79,7 +79,7 @@ public class NoteController {
         log.info("Download requested for note {}", noteId);
         NoteResponse note = noteService.recordDownload(noteId);
         log.info("Serving note download: id={} fileUrl={}", noteId, note.fileUrl());
-        return proxyPdf(note.fileUrl(), note.originalFilename(), true);
+        return proxyPdf(resolvePdfUrl(note.fileUrl()), note.originalFilename(), true);
     }
 
     @PostMapping("/{noteId}/download")
@@ -168,5 +168,17 @@ public class NoteController {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(java.util.List.of(MediaType.APPLICATION_PDF, MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
         return headers;
+    }
+
+    private String resolvePdfUrl(String storedUrl) {
+        if (storedUrl == null || storedUrl.isBlank()) {
+            return storedUrl;
+        }
+        if (storedUrl.contains("/image/upload/") && storedUrl.toLowerCase().endsWith(".pdf")) {
+            String resolved = storedUrl.replace("/image/upload/", "/raw/upload/");
+            log.info("Resolved legacy PDF URL to raw delivery path: {} -> {}", storedUrl, resolved);
+            return resolved;
+        }
+        return storedUrl;
     }
 }
