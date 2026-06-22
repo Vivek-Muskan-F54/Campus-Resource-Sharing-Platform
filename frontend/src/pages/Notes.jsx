@@ -233,7 +233,13 @@ function Pagination({ page, totalPages, onPageChange }) {
 }
 
 function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRate, onDownload, downloading }) {
-  const previewUrl = note?.fileUrl || ''
+  const previewUrl = note ? noteApi.previewUrl(note.id) : ''
+
+  useEffect(() => {
+    if (note) {
+      console.debug('[Notes] PDF preview URL', { noteId: note.id, previewUrl })
+    }
+  }, [note, previewUrl])
 
   return (
     <Modal open={!!note} onClose={onClose} title={note ? note.title : 'Preview note'} size="xl">
@@ -665,9 +671,7 @@ export default function Notes() {
   const handleDownload = async note => {
     setDownloadingNoteId(note.id)
     try {
-      await noteApi.recordDownload(note.id).catch(() => {})
-      const apiBase = import.meta.env.VITE_API_URL || 'https://campus-resource-sharing-platform.onrender.com/api'
-      window.open(`${apiBase}/notes/${note.id}/download`, '_blank', 'noopener,noreferrer')
+      window.open(noteApi.downloadUrl(note.id), '_blank', 'noopener,noreferrer')
       setNotes(current =>
         current.map(item =>
           item.id === note.id ? { ...item, downloadCount: (item.downloadCount || 0) + 1 } : item

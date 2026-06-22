@@ -958,7 +958,7 @@ export default function Admin() {
                         </button>
                       )}
                       {note.fileUrl && (
-                        <a href={note.fileUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary gap-1.5 text-sm">
+                        <a href={noteApi.previewUrl(note.id)} target="_blank" rel="noopener noreferrer" className="btn-secondary gap-1.5 text-sm">
                           <Eye size={13} />
                           View
                         </a>

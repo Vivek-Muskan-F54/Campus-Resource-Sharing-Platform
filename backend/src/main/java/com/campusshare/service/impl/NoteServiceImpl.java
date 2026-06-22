@@ -81,8 +81,8 @@ public class NoteServiceImpl implements NoteService {
         note.setFileSize(uploaded.bytes() > 0 ? uploaded.bytes() : file.getSize());
 
         Note saved = notes.save(note);
-        log.info("Note uploaded: id={} uploader={} filename={} size={}",
-                saved.getId(), email, safeFilename, saved.getFileSize());
+        log.info("Note uploaded: id={} uploader={} filename={} size={} fileUrl={} publicId={}",
+                saved.getId(), email, safeFilename, saved.getFileSize(), saved.getFileUrl(), saved.getPublicId());
         return toResponse(saved);
     }
 

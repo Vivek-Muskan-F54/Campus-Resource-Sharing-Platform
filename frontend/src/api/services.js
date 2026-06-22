@@ -32,6 +32,8 @@ export const noteApi = {
   getById: id => api.get(`/notes/${id}`),
   create: d => api.post('/notes', d),
   upload: d => api.post('/notes', d),
+  previewUrl: id => `${BASE_URL}/notes/${id}/preview`,
+  downloadUrl: id => `${BASE_URL}/notes/${id}/download`,
   download: id => api.get(`/notes/${id}/download`),
   recordDownload: id => api.post(`/notes/${id}/download`),
 }
