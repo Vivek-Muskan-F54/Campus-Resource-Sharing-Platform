@@ -496,7 +496,7 @@ function LoadingSkeletons() {
 }
 
 export default function Notes() {
-  const { user } = useAuth()
+  const { user, isAuthenticated, isAdmin } = useAuth()
 
   const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -759,6 +759,16 @@ export default function Notes() {
                   <Search size={16} />
                   Search
                 </button>
+                {isAuthenticated && !isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => setShowUpload(true)}
+                    className="btn-secondary h-12 gap-2 rounded-2xl px-5"
+                  >
+                    <Upload size={16} />
+                    Upload Notes
+                  </button>
+                )}
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -891,6 +901,12 @@ export default function Notes() {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {isAuthenticated && !isAdmin && (
+              <button type="button" onClick={() => setShowUpload(true)} className="btn gap-2">
+                <Upload size={14} />
+                Upload Notes
+              </button>
+            )}
             <div className="relative">
               <button
                 type="button"
