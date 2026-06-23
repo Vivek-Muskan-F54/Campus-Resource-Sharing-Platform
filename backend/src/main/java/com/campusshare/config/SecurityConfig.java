@@ -131,7 +131,7 @@ public class SecurityConfig {
                                         "connect-src 'self' https://campus-resource-sharing-platform.vercel.app " +
                                         "https://campus-resource-sharing-platform.onrender.com " +
                                         "wss://campus-resource-sharing-platform.onrender.com; " +
-                                        "frame-ancestors https://campus-resource-sharing-platform.vercel.app"))
+                                        "frame-ancestors https://campus-resource-sharing-platform.vercel.app http://localhost:5173"))
                         .referrerPolicy(referrer -> referrer
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                         .permissionsPolicy(permissions -> permissions

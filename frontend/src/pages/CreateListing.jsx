@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Package, DollarSign, Tag, Layers, AlertCircle,
-  Image as ImageIcon, X, Upload, ChevronRight, CheckCircle2
+  Package,
+  Tag,
+  Layers,
+  AlertCircle,
+  Image as ImageIcon,
+  X,
+  Upload,
+  ChevronRight,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react'
 import { categoryApi, listingApi, uploadApi } from '../api/services'
 
@@ -96,18 +104,50 @@ export default function CreateListing() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto animate-in">
-      {/* Header */}
-      <div className="mb-7">
-        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-2">
-          <span>Marketplace</span>
-          <ChevronRight size={14} />
-          <span className="text-slate-900 dark:text-slate-100">Create Listing</span>
+    <div className="space-y-6 animate-in">
+      <div className="surface overflow-hidden">
+        <div className="hero-gradient relative overflow-hidden px-6 py-8 text-white sm:px-8">
+          <div className="absolute inset-0 opacity-40">
+            <div className="absolute -left-12 top-0 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
+            <div className="absolute right-0 top-10 h-56 w-56 rounded-full bg-emerald-300/15 blur-3xl" />
+          </div>
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/75">
+                <Sparkles size={11} />
+                Marketplace
+              </div>
+              <div>
+                <div className="flex items-center gap-2 text-sm text-white/70">
+                  <span>Marketplace</span>
+                  <ChevronRight size={14} />
+                  <span>Create Listing</span>
+                </div>
+                <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+                  Create a listing
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-white/80 sm:text-base">
+                  Share your unused resources with the campus community through a cleaner, more
+                  professional publishing flow.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:w-[28rem]">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/45">Photos</p>
+                <p className="mt-1 text-2xl font-bold">5 max</p>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/45">Review</p>
+                <p className="mt-1 text-2xl font-bold">Admin</p>
+              </div>
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/45">Format</p>
+                <p className="mt-1 text-2xl font-bold">Simple</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <h1 className="page-title">Create a Listing</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">
-          Share your unused resources with the campus community.
-        </p>
       </div>
 
       <form onSubmit={submit} className="space-y-6">
@@ -118,15 +158,16 @@ export default function CreateListing() {
           </div>
         )}
 
-        {/* Basic info */}
-        <div className="card space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <div className="section-shell">
+          <h2 className="section-title flex items-center gap-2">
             <Package size={16} className="text-brand-600 dark:text-brand-400" />
-            Basic Information
+            Basic information
           </h2>
 
           <div className="form-group">
-            <label className="label" htmlFor="title">Title *</label>
+            <label className="label" htmlFor="title">
+              Title *
+            </label>
             <input
               id="title"
               name="title"
@@ -141,7 +182,10 @@ export default function CreateListing() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="form-group">
               <label className="label" htmlFor="price">
-                Price (₹) {form.type === 'EXCHANGE' && <span className="text-slate-400 text-xs">(or 0 for exchange)</span>}
+                Price (₹){' '}
+                {form.type === 'EXCHANGE' && (
+                  <span className="text-xs font-medium text-slate-400">(or 0 for exchange)</span>
+                )}
               </label>
               <div className="input-wrapper">
                 <span className="input-icon text-slate-400">₹</span>
@@ -161,7 +205,9 @@ export default function CreateListing() {
             </div>
 
             <div className="form-group">
-              <label className="label" htmlFor="categoryId">Category *</label>
+              <label className="label" htmlFor="categoryId">
+                Category *
+              </label>
               <select
                 id="categoryId"
                 name="categoryId"
@@ -172,20 +218,24 @@ export default function CreateListing() {
               >
                 <option value="">Select category</option>
                 {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <div className="form-group">
-            <label className="label" htmlFor="description">Description *</label>
+            <label className="label" htmlFor="description">
+              Description *
+            </label>
             <textarea
               id="description"
               name="description"
               required
-              rows={4}
-              placeholder="Describe the item's features, why you're listing it, any details buyers should know..."
+              rows={5}
+              placeholder="Describe the item's condition, what is included, and anything a buyer should know."
               value={form.description}
               onChange={set}
               className="w-full resize-none"
@@ -193,37 +243,39 @@ export default function CreateListing() {
           </div>
         </div>
 
-        {/* Listing type */}
-        <div className="card space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <div className="section-shell">
+          <h2 className="section-title flex items-center gap-2">
             <Tag size={16} className="text-brand-600 dark:text-brand-400" />
-            Listing Type
+            Listing type
           </h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid gap-3 md:grid-cols-3">
             {TYPES.map(t => (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => setForm(f => ({ ...f, type: t.value }))}
-                className={`rounded-xl border-2 p-3 text-left transition-all ${
+                className={`rounded-3xl border p-4 text-left transition-all ${
                   form.type === t.value
-                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700'
+                    ? 'border-brand-500 bg-brand-50 shadow-sm dark:bg-brand-900/20'
+                    : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-700'
                 }`}
               >
-                <div className="text-xl mb-1">{t.icon}</div>
-                <div className="font-medium text-slate-900 dark:text-slate-100 text-sm">{t.label}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{t.desc}</div>
+                <div className="text-2xl">{t.icon}</div>
+                <div className="mt-3 font-semibold text-slate-900 dark:text-slate-100">
+                  {t.label}
+                </div>
+                <div className="mt-1 text-xs leading-6 text-slate-500 dark:text-slate-400">
+                  {t.desc}
+                </div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Condition */}
-        <div className="card space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <div className="section-shell">
+          <h2 className="section-title flex items-center gap-2">
             <Layers size={16} className="text-brand-600 dark:text-brand-400" />
-            Item Condition
+            Item condition
           </h2>
           <div className="grid gap-2 sm:grid-cols-5">
             {CONDITIONS.map(c => (
@@ -231,43 +283,38 @@ export default function CreateListing() {
                 key={c.value}
                 type="button"
                 onClick={() => setForm(f => ({ ...f, condition: c.value }))}
-                className={`rounded-xl border-2 p-2.5 text-center transition-all ${
+                className={`rounded-3xl border p-3 text-center transition-all ${
                   form.condition === c.value
-                    ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-700'
+                    ? 'border-brand-500 bg-brand-50 shadow-sm dark:bg-brand-900/20'
+                    : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-700'
                 }`}
               >
-                <div className="font-medium text-xs text-slate-900 dark:text-slate-100">{c.label}</div>
-                <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 leading-tight">{c.desc}</div>
+                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{c.label}</div>
+                <div className="mt-1 text-[10px] leading-4 text-slate-400 dark:text-slate-500">{c.desc}</div>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Images */}
-        <div className="card space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+        <div className="section-shell">
+          <h2 className="section-title flex items-center gap-2">
             <ImageIcon size={16} className="text-brand-600 dark:text-brand-400" />
             Photos <span className="text-sm font-normal text-slate-400">(up to 5)</span>
           </h2>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {previews.map((src, i) => (
-              <div key={i} className="relative group aspect-square">
-                <img
-                  src={src}
-                  alt={`Preview ${i + 1}`}
-                  className="h-full w-full rounded-xl object-cover"
-                />
+              <div key={i} className="group relative aspect-square overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800">
+                <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => removeFile(i)}
-                  className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
                 >
-                  <X size={11} />
+                  <X size={12} />
                 </button>
                 {i === 0 && (
-                  <span className="absolute bottom-1 left-1 rounded-md bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white">
+                  <span className="absolute left-2 bottom-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
                     Cover
                   </span>
                 )}
@@ -275,9 +322,11 @@ export default function CreateListing() {
             ))}
 
             {previews.length < 5 && (
-              <label className="aspect-square cursor-pointer rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-400 dark:hover:border-brand-600 flex flex-col items-center justify-center gap-1 transition-colors">
+              <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-300 bg-white text-center transition-colors hover:border-brand-400 hover:bg-brand-50/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-600 dark:hover:bg-brand-900/10">
                 <Upload size={18} className="text-slate-400 dark:text-slate-500" />
-                <span className="text-xs text-slate-400 dark:text-slate-500">Add photo</span>
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  Add photo
+                </span>
                 <input
                   type="file"
                   multiple
@@ -291,18 +340,14 @@ export default function CreateListing() {
 
           {files.length > 0 && (
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              {files.length} photo{files.length > 1 ? 's' : ''} selected · First photo will be the cover image
+              {files.length} photo{files.length > 1 ? 's' : ''} selected. First photo will be the
+              cover image.
             </p>
           )}
         </div>
 
-        {/* Submit */}
-        <div className="flex gap-3 justify-end pb-4">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="btn-secondary"
-          >
+        <div className="flex justify-end gap-3 pb-4">
+          <button type="button" onClick={() => navigate(-1)} className="btn-secondary">
             Cancel
           </button>
           <button type="submit" disabled={uploading} className="btn px-8">

@@ -22,19 +22,19 @@ export default function Modal({ open, onClose, title, children, size = 'md' }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center animate-fade-in"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-[rgb(var(--color-overlay)/0.64)] backdrop-blur-md" />
       <div
-        className={`relative w-full ${sizes[size] || sizes.md} rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 animate-slide-up`}
+        className={`modal-surface relative w-full ${sizes[size] || sizes.md} animate-slide-up`}
         onClick={e => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+        <div className="flex items-center justify-between border-b border-border bg-surface-elevated/70 px-6 py-4">
+          <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            className="rounded-xl p-1.5 text-muted hover:bg-surface hover:text-foreground"
           >
             <X size={18} />
           </button>

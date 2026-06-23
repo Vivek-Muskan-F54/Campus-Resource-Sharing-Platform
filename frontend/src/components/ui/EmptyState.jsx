@@ -7,13 +7,13 @@ export default function EmptyState({
   action = null,
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center animate-in">
-      <div className="mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 p-5">
-        <Icon size={36} className="text-slate-400 dark:text-slate-500" />
+    <div className="animate-in flex flex-col items-center justify-center rounded-[28px] border border-dashed border-border bg-surface/70 px-6 py-16 text-center shadow-sm backdrop-blur">
+      <div className="mb-4 rounded-[24px] bg-gradient-to-br from-primary-soft to-surface-elevated p-5 text-primary ring-1 ring-primary/10">
+        <Icon size={36} />
       </div>
-      <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h3>
+      <h3 className="text-base font-semibold tracking-tight text-foreground">{title}</h3>
       {description && (
-        <p className="mt-1.5 max-w-xs text-sm text-slate-500 dark:text-slate-400">{description}</p>
+        <p className="mt-1.5 max-w-sm text-sm leading-6 text-muted">{description}</p>
       )}
       {action && <div className="mt-5">{action}</div>}
     </div>

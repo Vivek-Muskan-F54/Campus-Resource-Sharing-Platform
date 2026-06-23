@@ -126,8 +126,8 @@ function Chip({ label, active, onClick }) {
       onClick={onClick}
       className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition-all ${
         active
-          ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-          : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-brand-700 dark:hover:text-brand-400'
+          ? 'border-primary bg-primary text-white shadow-sm'
+          : 'border-border bg-surface text-muted hover:border-primary/35 hover:text-primary'
       }`}
     >
       {label}
@@ -171,12 +171,12 @@ function Pagination({ page, totalPages, onPageChange }) {
   for (let index = start; index < end; index += 1) pages.push(index)
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-2">
+    <div className="pagination-shell">
       <button
         type="button"
         onClick={() => onPageChange(page - 1)}
         disabled={page === 0}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+        className="pagination-button"
       >
         <ChevronLeft size={14} />
         Prev
@@ -186,11 +186,11 @@ function Pagination({ page, totalPages, onPageChange }) {
           <button
             type="button"
             onClick={() => onPageChange(0)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="pagination-button"
           >
             1
           </button>
-          <span className="px-1 text-slate-400">...</span>
+          <span className="px-1 text-muted">...</span>
         </>
       )}
       {pages.map(index => (
@@ -200,8 +200,8 @@ function Pagination({ page, totalPages, onPageChange }) {
           onClick={() => onPageChange(index)}
           className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
             index === page
-              ? 'border-brand-600 bg-brand-600 text-white shadow-sm'
-              : 'border-slate-200 bg-white text-slate-600 hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
+              ? 'pagination-button pagination-button-active'
+              : 'pagination-button'
           }`}
         >
           {index + 1}
@@ -209,11 +209,11 @@ function Pagination({ page, totalPages, onPageChange }) {
       ))}
       {end < totalPages && (
         <>
-          <span className="px-1 text-slate-400">...</span>
+          <span className="px-1 text-muted">...</span>
           <button
             type="button"
             onClick={() => onPageChange(totalPages - 1)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+            className="pagination-button"
           >
             {totalPages}
           </button>
@@ -720,24 +720,19 @@ export default function Notes() {
 
   return (
     <div className="space-y-8 animate-in">
-      <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-emerald-950 via-slate-900 to-teal-950 px-5 py-8 text-white shadow-2xl shadow-slate-900/20 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 opacity-70">
-          <div className="absolute -left-12 top-0 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
-          <div className="absolute right-0 top-8 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
-        </div>
-
-        <div className="relative grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+      <section className="hero-panel px-5 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div className="space-y-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/80 backdrop-blur">
+            <div className="hero-kicker">
               <GraduationCap size={12} />
               Study notes library
             </div>
 
             <div className="space-y-3">
-              <h1 className="max-w-3xl text-3xl font-bold tracking-tight sm:text-4xl">
+              <h1 className="hero-title max-w-3xl">
                 Find, preview, bookmark, and rate study notes with a cleaner campus experience.
               </h1>
-              <p className="max-w-2xl text-sm leading-6 text-white/75 sm:text-base">
+              <p className="hero-copy max-w-2xl">
                 Browse notes by branch, subject, and semester. Download count, bookmarking, and note previews are built right into the workflow.
               </p>
             </div>
@@ -745,13 +740,13 @@ export default function Notes() {
             <form onSubmit={handleSearchSubmit} className="space-y-3">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <label className="relative flex-1">
-                  <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                   <input
                     type="search"
                     placeholder="Search title, subject, or branch"
                     value={filters.q}
                     onChange={e => updateFilter('q', e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-white/10 bg-white/10 pl-11 pr-4 text-sm text-white placeholder:text-white/45 outline-none transition-colors focus:border-white/30 focus:bg-white/15"
+                    className="h-12 w-full rounded-2xl border border-border bg-surface pl-11 pr-4 text-sm text-foreground placeholder:text-muted/70 outline-none transition-colors focus:border-primary/30 focus:bg-surface"
                     aria-label="Search notes"
                   />
                 </label>
@@ -775,12 +770,12 @@ export default function Notes() {
                 <button
                   type="button"
                   onClick={() => setShowFilters(v => !v)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur transition-colors hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-elevated"
                 >
                   <Filter size={12} />
                   Filters
                   {activeCount > 0 && (
-                    <span className="rounded-full bg-brand-500 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    <span className="rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-white">
                       {activeCount}
                     </span>
                   )}
@@ -794,7 +789,7 @@ export default function Notes() {
                       updateFilter('q', term)
                       saveSearch(term)
                     }}
-                    className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 transition-colors hover:bg-white/10"
+                    className="inline-flex items-center rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-elevated"
                   >
                     {term}
                   </button>
@@ -804,25 +799,25 @@ export default function Notes() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Notes</p>
+            <div className="hero-metric">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Notes</p>
               <div className="mt-2 flex items-end justify-between gap-3">
-                <div className="text-3xl font-bold">{totalElements}</div>
-                <BookOpen size={22} className="text-white/55" />
+                <div className="text-3xl font-bold text-foreground">{totalElements}</div>
+                <BookOpen size={22} className="text-primary" />
               </div>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Saved</p>
+            <div className="hero-metric">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Saved</p>
               <div className="mt-2 flex items-end justify-between gap-3">
-                <div className="text-3xl font-bold">{totalSaved}</div>
-                <Bookmark size={22} className="text-white/55" />
+                <div className="text-3xl font-bold text-foreground">{totalSaved}</div>
+                <Bookmark size={22} className="text-primary" />
               </div>
             </div>
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/45">Downloads shown</p>
+            <div className="hero-metric">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Downloads shown</p>
               <div className="mt-2 flex items-end justify-between gap-3">
-                <div className="text-3xl font-bold">{notes.reduce((sum, note) => sum + (note.downloadCount || 0), 0)}</div>
-                <Download size={22} className="text-white/55" />
+                <div className="text-3xl font-bold text-foreground">{notes.reduce((sum, note) => sum + (note.downloadCount || 0), 0)}</div>
+                <Download size={22} className="text-primary" />
               </div>
             </div>
           </div>

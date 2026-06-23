@@ -132,7 +132,7 @@ export default function QrVerify() {
           {scanning && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="h-48 w-48 border-2 border-brand-400 rounded-2xl" style={{
-                boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)'
+                boxShadow: '0 0 0 9999px rgb(var(--color-overlay) / 0.5)'
               }}>
                 <div className="absolute top-0 left-0 h-4 w-4 border-t-4 border-l-4 border-brand-400 rounded-tl" />
                 <div className="absolute top-0 right-0 h-4 w-4 border-t-4 border-r-4 border-brand-400 rounded-tr" />

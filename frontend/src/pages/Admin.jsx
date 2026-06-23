@@ -50,7 +50,14 @@ const TABS = [
   { id: 'notes', label: 'Notes', icon: FileText },
 ]
 
-const CHART_COLORS = ['#2563eb', '#14b8a6', '#8b5cf6', '#f59e0b', '#ef4444', '#22c55e']
+const CHART_COLORS = [
+  'rgb(var(--color-primary))',
+  'rgb(var(--color-info))',
+  'rgb(139 92 246)',
+  'rgb(var(--color-warning))',
+  'rgb(var(--color-danger))',
+  'rgb(var(--color-success))',
+]
 
 function formatDate(value) {
   return value
@@ -147,14 +154,14 @@ function StatCard({ label, value, helper, icon: Icon, accent, progress }) {
         </Badge>
       </div>
       <div className="mt-4">
-        <p className="text-3xl font-bold text-slate-900 dark:text-white">{value ?? 0}</p>
-        <p className="mt-1 text-sm font-medium text-slate-500 dark:text-slate-400">{label}</p>
-        {helper && <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">{helper}</p>}
+        <p className="text-3xl font-bold text-foreground">{value ?? 0}</p>
+        <p className="mt-1 text-sm font-medium text-muted">{label}</p>
+        {helper && <p className="mt-1 text-xs text-muted">{helper}</p>}
       </div>
       {typeof progress === 'number' && (
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-brand-500 to-emerald-500"
+            className="h-full rounded-full bg-gradient-to-r from-primary to-success"
             style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
           />
         </div>
@@ -185,7 +192,7 @@ function FeedItem({ item }) {
   return (
     <a
       href={item.link || '#'}
-      className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
+      className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 transition-all hover:-translate-y-0.5 hover:shadow-md"
     >
       <div className={`rounded-2xl p-2.5 ${toneMap[item.tone] || toneMap.slate}`}>
         <Icon size={16} />
@@ -193,16 +200,16 @@ function FeedItem({ item }) {
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <p className="truncate text-sm font-semibold text-foreground">
               {item.title}
             </p>
-            <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 truncate text-xs text-muted">
               {item.subtitle}
             </p>
           </div>
           <ChevronRight size={14} className="mt-0.5 flex-shrink-0 text-slate-300 dark:text-slate-600" />
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <span>{item.meta}</span>
           {item.createdAt && <span>• {formatTime(item.createdAt)}</span>}
         </div>
@@ -215,8 +222,8 @@ function ActivityRow({ label, value, hint }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/40">
       <div>
-        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{label}</p>
-        {hint && <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{hint}</p>}
+        <p className="text-sm font-medium text-foreground">{label}</p>
+        {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
       </div>
       <Badge variant="brand">{value}</Badge>
     </div>
@@ -486,29 +493,29 @@ export default function Admin() {
                       <AreaChart data={trendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
                           <linearGradient id="marketplaceGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02} />
+                            <stop offset="5%" stopColor="rgb(var(--color-primary))" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="rgb(var(--color-primary))" stopOpacity={0.02} />
                           </linearGradient>
                           <linearGradient id="notesGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.02} />
+                            <stop offset="5%" stopColor="rgb(139 92 246)" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="rgb(139 92 246)" stopOpacity={0.02} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgb(var(--color-border))" vertical={false} />
                         <XAxis dataKey="name" tickLine={false} axisLine={false} />
                         <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
                         <Tooltip
                           contentStyle={{
                             borderRadius: '16px',
-                            border: '1px solid #e2e8f0',
-                            boxShadow: '0 20px 40px rgba(15, 23, 42, 0.08)',
+                            border: '1px solid rgb(var(--color-border))',
+                            boxShadow: '0 20px 40px rgb(var(--color-shadow) / 0.08)',
                           }}
                         />
                         <Area
                           type="monotone"
                           dataKey="marketplace"
                           name="Marketplace"
-                          stroke="#2563eb"
+                          stroke="rgb(var(--color-primary))"
                           fill="url(#marketplaceGradient)"
                           strokeWidth={2}
                         />
@@ -516,7 +523,7 @@ export default function Admin() {
                           type="monotone"
                           dataKey="notes"
                           name="Notes"
-                          stroke="#8b5cf6"
+                          stroke="rgb(139 92 246)"
                           fill="url(#notesGradient)"
                           strokeWidth={2}
                         />
@@ -545,8 +552,8 @@ export default function Admin() {
                             <Tooltip
                               contentStyle={{
                                 borderRadius: '16px',
-                                border: '1px solid #e2e8f0',
-                                boxShadow: '0 20px 40px rgba(15, 23, 42, 0.08)',
+                                border: '1px solid rgb(var(--color-border))',
+                                boxShadow: '0 20px 40px rgb(var(--color-shadow) / 0.08)',
                               }}
                             />
                           </PieChart>

@@ -16,12 +16,12 @@ export default function Avatar({ name = '', src = null, size = 'md', className =
     .slice(0, 2)
 
   const colors = [
-    'bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300',
-    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
-    'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
-    'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
-    'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300',
-    'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+    'bg-primary-soft text-primary ring-1 ring-primary/12',
+    'bg-success-soft text-success ring-1 ring-success/12',
+    'bg-violet-50 text-violet-700 ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-900/50',
+    'bg-warning-soft text-warning ring-1 ring-warning/12',
+    'bg-danger-soft text-danger ring-1 ring-danger/12',
+    'bg-info-soft text-info ring-1 ring-info/12',
   ]
 
   const colorIndex = name.charCodeAt(0) % colors.length
@@ -32,14 +32,14 @@ export default function Avatar({ name = '', src = null, size = 'md', className =
       <img
         src={src}
         alt={name}
-        className={`${sizes[size] || sizes.md} rounded-full object-cover ring-2 ring-white dark:ring-slate-800 ${className}`}
+        className={`${sizes[size] || sizes.md} rounded-full object-cover ring-2 ring-surface shadow-sm ${className}`}
       />
     )
   }
 
   return (
     <div
-      className={`${sizes[size] || sizes.md} rounded-full flex items-center justify-center font-semibold flex-shrink-0 ${color} ${className}`}
+      className={`${sizes[size] || sizes.md} rounded-full flex items-center justify-center font-semibold flex-shrink-0 shadow-sm ${color} ${className}`}
     >
       {initials || '?'}
     </div>

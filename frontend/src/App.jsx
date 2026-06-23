@@ -22,8 +22,8 @@ function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[50vh]">
       <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 rounded-full border-3 border-brand-200 dark:border-brand-800 border-t-brand-600 dark:border-t-brand-400 animate-spin" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
+        <div className="h-8 w-8 rounded-full border-[3px] border-primary-soft border-t-primary animate-spin" />
+        <p className="text-sm text-muted">Loading...</p>
       </div>
     </div>
   )
@@ -65,8 +65,8 @@ export default function App() {
           <Route path="*" element={
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
               <div className="text-7xl mb-4">🔍</div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Page not found</h1>
-              <p className="text-slate-500 dark:text-slate-400 mb-6">
+              <h1 className="text-3xl font-bold text-foreground mb-2">Page not found</h1>
+              <p className="text-muted mb-6">
                 The page you're looking for doesn't exist or has been moved.
               </p>
               <a href="/" className="btn">Go home</a>

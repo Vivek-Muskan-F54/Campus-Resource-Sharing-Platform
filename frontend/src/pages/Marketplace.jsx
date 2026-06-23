@@ -91,13 +91,13 @@ function formatCount(value) {
 
 function HeroStat({ label, value, icon: Icon }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
+    <div className="hero-metric">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-white/45">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-white">{value}</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted">{label}</p>
+          <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
         </div>
-        <div className="rounded-2xl bg-white/10 p-2.5 text-white">
+        <div className="rounded-2xl bg-primary-soft p-2.5 text-primary">
           <Icon size={18} />
         </div>
       </div>
@@ -112,8 +112,8 @@ function SectionHeading({ eyebrow, title, description }) {
         <Sparkles size={10} />
         {eyebrow}
       </Badge>
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">{title}</h2>
-      <p className="text-sm leading-6 text-slate-500 dark:text-slate-400 sm:text-base">{description}</p>
+      <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{title}</h2>
+      <p className="text-sm leading-6 text-muted sm:text-base">{description}</p>
     </div>
   )
 }
@@ -121,11 +121,11 @@ function SectionHeading({ eyebrow, title, description }) {
 function FeatureCard({ icon: Icon, title, description }) {
   return (
     <div className="card group overflow-hidden">
-      <div className="mb-4 inline-flex rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-500 p-3 text-white shadow-lg shadow-brand-600/15 transition-transform group-hover:scale-105">
+      <div className="mb-4 inline-flex rounded-2xl bg-primary-soft p-3 text-primary shadow-sm transition-transform group-hover:scale-105">
         <Icon size={20} />
       </div>
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">{description}</p>
+      <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
     </div>
   )
 }
@@ -136,8 +136,8 @@ function TestimonialCard({ name, role, quote, rating }) {
       <div className="flex items-center gap-3">
         <Avatar name={name} size="lg" />
         <div>
-          <p className="font-semibold text-slate-900 dark:text-white">{name}</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{role}</p>
+          <p className="font-semibold text-foreground">{name}</p>
+          <p className="text-sm text-muted">{role}</p>
         </div>
       </div>
       <div className="mt-4 flex items-center gap-1 text-amber-500">
@@ -146,7 +146,7 @@ function TestimonialCard({ name, role, quote, rating }) {
             key={index}
             size={14}
             fill={index < rating ? 'currentColor' : 'none'}
-            className={index < rating ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}
+            className={index < rating ? 'text-warning' : 'text-border-strong'}
           />
         ))}
       </div>
@@ -157,17 +157,17 @@ function TestimonialCard({ name, role, quote, rating }) {
 
 function FaqItem({ item, open, onToggle }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-border bg-surface">
       <button
         type="button"
         onClick={onToggle}
         className="flex w-full items-center justify-between gap-3 px-4 py-4 text-left"
       >
-        <span className="font-semibold text-slate-900 dark:text-white">{item.question}</span>
-        <ChevronDown size={16} className={`text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <span className="font-semibold text-foreground">{item.question}</span>
+        <ChevronDown size={16} className={`text-muted transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 text-sm leading-6 text-slate-500 dark:text-slate-400">{item.answer}</div>
+        <div className="px-4 pb-4 text-sm leading-6 text-muted">{item.answer}</div>
       )}
     </div>
   )
@@ -177,7 +177,7 @@ function FooterLink({ to, children }) {
   return (
     <Link
       to={to}
-      className="text-sm text-slate-500 transition-colors hover:text-brand-600 dark:text-slate-400 dark:hover:text-brand-400"
+      className="text-sm text-muted transition-colors hover:text-primary"
     >
       {children}
     </Link>
@@ -254,23 +254,18 @@ export default function Marketplace() {
 
   return (
     <div className="space-y-20 pb-10">
-      <section className="relative overflow-hidden rounded-[36px] border border-slate-200 bg-gradient-to-br from-slate-950 via-brand-950 to-slate-900 px-5 py-8 text-white shadow-2xl shadow-slate-900/20 sm:px-8 lg:px-10">
-        <div className="absolute inset-0 opacity-80">
-          <div className="absolute -left-16 top-0 h-72 w-72 rounded-full bg-brand-500/20 blur-3xl" />
-          <div className="absolute right-0 top-10 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
-        </div>
-
-        <div className="relative grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+      <section className="hero-panel px-5 py-8 sm:px-8 lg:px-10">
+        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
           <div className="space-y-6">
-            <Badge variant="slate" className="gap-1.5 border border-white/10 bg-white/5 text-white/80">
+            <Badge variant="brand" className="gap-1.5">
               <Sparkles size={10} />
               CampusShare platform
             </Badge>
             <div className="space-y-4">
-              <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+              <h1 className="hero-title max-w-3xl">
                 A premium campus marketplace for sharing, learning, and moving faster together.
               </h1>
-              <p className="max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
+              <p className="hero-copy">
                 Buy and rent what you need, share study notes, and keep the entire student ecosystem in one polished, responsive experience.
               </p>
             </div>
@@ -302,49 +297,49 @@ export default function Marketplace() {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="card-glass border-white/10 bg-white/10 text-white shadow-2xl shadow-slate-950/20">
+            <div className="card">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/45">Live snapshot</p>
-                  <h2 className="mt-2 text-xl font-semibold">Community pulse</h2>
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted">Live snapshot</p>
+                  <h2 className="mt-2 text-xl font-semibold text-foreground">Community pulse</h2>
                 </div>
-                <div className="rounded-2xl bg-white/10 p-3">
+                <div className="rounded-2xl bg-primary-soft p-3 text-primary">
                   <Sparkles size={18} />
                 </div>
               </div>
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Marketplace activity</p>
+                <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted">Marketplace activity</p>
                   <p className="mt-2 text-2xl font-bold">{formatCount(heroStats.listings)}</p>
-                  <p className="mt-1 text-sm text-white/70">Fresh listings waiting to be discovered.</p>
+                  <p className="mt-1 text-sm text-muted">Fresh listings waiting to be discovered.</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-white/45">Study resources</p>
+                <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted">Study resources</p>
                   <p className="mt-2 text-2xl font-bold">{formatCount(heroStats.notes)}</p>
-                  <p className="mt-1 text-sm text-white/70">Public notes ready for quick preview and download.</p>
+                  <p className="mt-1 text-sm text-muted">Public notes ready for quick preview and download.</p>
                 </div>
               </div>
             </div>
 
-            <div className="card-glass border-white/10 bg-white text-slate-900 shadow-2xl shadow-slate-950/20">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-600">Why it works</p>
-              <ul className="mt-4 space-y-3 text-sm text-slate-600">
+            <div className="card">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Why it works</p>
+              <ul className="mt-4 space-y-3 text-sm text-muted">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  <CheckCircle2 size={16} className="text-success" />
                   Built for quick browsing on mobile and desktop
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  <CheckCircle2 size={16} className="text-success" />
                   Reuses the same brand language across the platform
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-emerald-500" />
+                  <CheckCircle2 size={16} className="text-success" />
                   Loads only a small live preview set for fast initial render
                 </li>
               </ul>
-              <div className="mt-5 rounded-2xl bg-slate-50 p-4">
-                <p className="text-xs uppercase tracking-[0.16em] text-slate-400">CampusShare</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
+              <div className="mt-5 rounded-2xl bg-surface-elevated p-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-muted">CampusShare</p>
+                <p className="mt-2 text-sm leading-6 text-muted">
                   Premium UI, verified community signals, and one shared place for resource exchange.
                 </p>
               </div>

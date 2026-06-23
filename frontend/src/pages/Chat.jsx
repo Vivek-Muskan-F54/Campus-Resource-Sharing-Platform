@@ -2,8 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import SockJS from 'sockjs-client'
 import { Client } from '@stomp/stompjs'
 import {
-  Send, MessageCircle, Users, Wifi, WifiOff, Search,
-  ArrowLeft, ChevronRight
+  Send,
+  MessageCircle,
+  Users,
+  Wifi,
+  WifiOff,
+  Search,
+  ArrowLeft,
+  ChevronRight,
+  Sparkles,
 } from 'lucide-react'
 import { chatApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
@@ -25,28 +32,22 @@ function MessageBubble({ message, mine }) {
 
   return (
     <div className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
-      {!mine && (
-        <Avatar name={message.senderName || 'U'} size="xs" className="flex-shrink-0 mb-1" />
-      )}
+      {!mine && <Avatar name={message.senderName || 'U'} size="xs" className="flex-shrink-0 mb-1" />}
       <div className={`max-w-[75%] sm:max-w-[65%] ${mine ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
         {!mine && message.senderName && (
-          <span className="text-xs text-slate-500 dark:text-slate-400 px-1">{message.senderName}</span>
+          <span className="px-1 text-xs text-muted">{message.senderName}</span>
         )}
         <div
-          className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+          className={`rounded-3xl px-4 py-2.5 text-sm shadow-sm ${
             mine
-              ? 'bg-brand-600 text-white rounded-tr-sm'
-              : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-100 dark:border-slate-700 rounded-tl-sm'
+              ? 'rounded-tr-sm bg-primary text-white'
+              : 'rounded-tl-sm border border-border bg-surface text-foreground'
           }`}
         >
-          {message.productTitle && (
-            <p className={`text-xs mb-1 opacity-70`}>re: {message.productTitle}</p>
-          )}
+          {message.productTitle && <p className="mb-1 text-xs opacity-70">re: {message.productTitle}</p>}
           <p className="leading-relaxed">{message.content}</p>
         </div>
-        {timeLabel && (
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 px-1">{timeLabel}</span>
-        )}
+        {timeLabel && <span className="px-1 text-[10px] text-muted">{timeLabel}</span>}
       </div>
     </div>
   )
@@ -85,7 +86,6 @@ export default function Chat() {
     )
   }, [searchQuery, visibleOnlineUsers])
 
-  // Auto-scroll on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
@@ -155,7 +155,10 @@ export default function Chat() {
 
     client.activate()
     stompRef.current = client
-    return () => { client.deactivate(); stompRef.current = null }
+    return () => {
+      client.deactivate()
+      stompRef.current = null
+    }
   }, [user?.email, user?.token])
 
   useEffect(() => {
@@ -201,29 +204,26 @@ export default function Chat() {
   }
 
   return (
-    <div className="h-[calc(100vh-10rem)] flex rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-card animate-in">
-      {/* ─── Sidebar ─────────────────────────────────── */}
+    <div className="surface flex h-[calc(100vh-10rem)] overflow-hidden animate-in">
       <aside
         className={`${
           showSidebar ? 'flex' : 'hidden md:flex'
-        } w-full md:w-72 lg:w-80 flex-col border-r border-slate-200 dark:border-slate-800 flex-shrink-0`}
+        } w-full flex-shrink-0 flex-col border-r border-border md:w-72 lg:w-80`}
       >
-        {/* Sidebar header */}
-        <div className="px-4 py-4 border-b border-slate-200 dark:border-slate-800">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <MessageCircle size={18} className="text-brand-600 dark:text-brand-400" />
+        <div className="border-b border-border px-4 py-4">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-semibold text-foreground">
+              <MessageCircle size={18} className="text-primary" />
               Messages
-            </h2>
-            <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? 'text-emerald-500' : 'text-slate-400'}`}>
+            </div>
+            <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? 'text-success' : 'text-muted'}`}>
               {connected ? <Wifi size={12} /> : <WifiOff size={12} />}
               {connected ? 'Live' : 'Offline'}
             </div>
           </div>
 
-          {/* Search */}
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
             <input
               type="text"
               placeholder="Search people..."
@@ -234,61 +234,59 @@ export default function Chat() {
           </div>
         </div>
 
-        {/* Online users list */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-3 py-2">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1 mb-1.5 flex items-center gap-1.5">
-              <Users size={11} />
-              Online ({filteredUsers.length})
-            </p>
-            {filteredUsers.length === 0 ? (
-              <div className="text-center py-8">
-                <Users size={24} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-                <p className="text-sm text-slate-400 dark:text-slate-500">No one online right now</p>
-              </div>
-            ) : (
-              <div className="space-y-0.5">
-                {filteredUsers.map(person => (
-                  <button
-                    key={person.id}
-                    type="button"
-                    onClick={() => {
-                      setError('')
-                      setSelectedUserId(String(person.id))
-                    }}
-                    className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all ${
-                      String(person.id) === String(selectedUserId)
-                        ? 'bg-brand-50 dark:bg-brand-900/30'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <div className="relative">
-                      <Avatar name={person.name || person.email} size="sm" />
-                      <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium truncate ${
+        <div className="flex-1 overflow-y-auto p-3">
+          <p className="mb-2 flex items-center gap-1.5 px-1 text-xs font-semibold uppercase tracking-wider text-muted">
+            <Users size={11} />
+            Online ({filteredUsers.length})
+          </p>
+          {filteredUsers.length === 0 ? (
+            <div className="py-10 text-center">
+              <Users size={24} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+              <p className="text-sm text-muted">No one online right now.</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {filteredUsers.map(person => (
+                <button
+                  key={person.id}
+                  type="button"
+                  onClick={() => {
+                    setError('')
+                    setSelectedUserId(String(person.id))
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-all ${
+                    String(person.id) === String(selectedUserId)
+                      ? 'bg-primary-soft'
+                      : 'hover:bg-surface-elevated'
+                  }`}
+                >
+                  <div className="relative">
+                    <Avatar name={person.name || person.email} size="sm" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p
+                      className={`truncate text-sm font-semibold ${
                         String(person.id) === String(selectedUserId)
                           ? 'text-brand-700 dark:text-brand-300'
-                          : 'text-slate-900 dark:text-slate-100'
-                      }`}>
-                        {person.name}
-                      </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 truncate">{person.email}</p>
-                    </div>
-                    {String(person.id) === String(selectedUserId) && (
-                      <ChevronRight size={14} className="text-brand-500 flex-shrink-0" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+                          : 'text-foreground'
+                      }`}
+                    >
+                      {person.name}
+                    </p>
+                    <p className="truncate text-xs text-muted">{person.email}</p>
+                  </div>
+                  {String(person.id) === String(selectedUserId) && (
+                    <ChevronRight size={14} className="flex-shrink-0 text-brand-500" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Manual user ID */}
-        <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2 font-medium">Chat by User ID</p>
+        <div className="border-t border-border px-4 py-3">
+          <p className="mb-2 text-xs font-medium text-muted">Chat by User ID</p>
           <input
             className="w-full text-sm py-2"
             value={selectedUserId}
@@ -301,14 +299,12 @@ export default function Chat() {
         </div>
       </aside>
 
-      {/* ─── Chat Window ─────────────────────────────── */}
       <div className={`${showSidebar ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden`}>
-        {/* Chat header */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-slate-800">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
           <button
             type="button"
             onClick={() => setShowSidebar(true)}
-            className="md:hidden btn-ghost p-1.5 rounded-lg"
+            className="btn-ghost rounded-xl p-1.5 md:hidden"
           >
             <ArrowLeft size={18} />
           </button>
@@ -320,36 +316,41 @@ export default function Chat() {
                 <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{selectedUser.name}</h3>
+                <h3 className="text-sm font-semibold text-foreground">
+                  {selectedUser.name}
+                </h3>
                 <p className="text-xs text-emerald-500">Online</p>
               </div>
             </>
           ) : selectedUserId ? (
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">User #{selectedUserId}</h3>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Direct message</p>
+              <h3 className="text-sm font-semibold text-foreground">
+                User #{selectedUserId}
+              </h3>
+              <p className="text-xs text-muted">Direct message</p>
             </div>
           ) : (
             <div>
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">Select a conversation</h3>
-              <p className="text-xs text-slate-400 dark:text-slate-500">Pick someone from the sidebar</p>
+              <h3 className="text-sm font-semibold text-foreground">
+                Select a conversation
+              </h3>
+              <p className="text-xs text-muted">Pick someone from the sidebar</p>
             </div>
           )}
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
           {!selectedUserId ? (
             <EmptyState
               icon={MessageCircle}
               title="No conversation selected"
-              description="Pick a user from the list to start chatting"
+              description="Pick a user from the list to start chatting."
             />
           ) : messages.length === 0 ? (
             <EmptyState
               icon={MessageCircle}
               title="No messages yet"
-              description="Start the conversation by sending a message below!"
+              description="Start the conversation by sending a message below."
             />
           ) : (
             messages.map(msg => (
@@ -363,16 +364,15 @@ export default function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Message input */}
-        <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-800">
+        <div className="border-t border-border px-4 py-3">
           {error && (
-            <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+            <div className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
               {error}
             </div>
           )}
-          <div className="flex gap-2 items-end">
+          <div className="flex items-end gap-2">
             <textarea
-              className="flex-1 min-h-[42px] max-h-24 resize-none py-2.5 text-sm rounded-xl"
+              className="min-h-[42px] max-h-24 flex-1 resize-none py-2.5 text-sm rounded-2xl"
               value={draft}
               onChange={e => {
                 setError('')
@@ -390,7 +390,7 @@ export default function Chat() {
             />
             <button
               type="button"
-              className="btn h-[42px] w-[42px] p-0 flex-shrink-0"
+              className="btn h-[42px] w-[42px] flex-shrink-0 p-0"
               onClick={send}
               disabled={!selectedUserId || !draft.trim()}
               title="Send (Enter)"
@@ -398,7 +398,7 @@ export default function Chat() {
               <Send size={16} />
             </button>
           </div>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 px-1">
+          <p className="mt-1.5 px-1 text-[10px] text-muted">
             Press Enter to send · Shift+Enter for new line
           </p>
         </div>
