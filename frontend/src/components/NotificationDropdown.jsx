@@ -74,7 +74,7 @@ export default function NotificationDropdown() {
             ) : (
               notifications.map(notif => {
                 const Icon = typeIcon[notif.type] || Info
-                const color = typeColor[notif.type] || 'text-slate-500'
+                const color = typeColor[notif.type] || 'text-muted'
                 return (
                   <button
                     key={notif.id}
@@ -97,9 +97,7 @@ export default function NotificationDropdown() {
                         {new Date(notif.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    {!notif.readFlag && (
-                      <div className="mt-1 h-2 w-2 rounded-full bg-brand-500 flex-shrink-0" />
-                    )}
+                    {!notif.readFlag && <div className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />}
                   </button>
                 )
               })

@@ -477,25 +477,25 @@ export default function Marketplace() {
 
       <section className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-6 py-10 shadow-xl sm:px-8 lg:px-10">
         <div className="absolute inset-0 opacity-60">
-          <div className="absolute -left-8 top-0 h-52 w-52 rounded-full bg-white/15 blur-3xl" />
-          <div className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-emerald-300/15 blur-3xl" />
+          <div className="absolute -left-8 top-0 h-52 w-52 rounded-full bg-primary-soft/30 blur-3xl" />
+          <div className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-primary-soft/40 blur-3xl" />
         </div>
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Call to action</p>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted">Call to action</p>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               Ready to share resources with a smoother, more modern campus experience?
             </h2>
-            <p className="text-sm leading-7 text-white/80 sm:text-base">
+            <p className="text-sm leading-7 text-muted sm:text-base">
               Start browsing now, or post your own listing when you are ready to contribute back to the community.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link to={user ? '/create' : '/register'} className="btn h-12 gap-2 rounded-2xl bg-white text-primary hover:bg-white/95">
+            <Link to={user ? '/create' : '/register'} className="btn h-12 gap-2 rounded-2xl px-5">
               {user ? 'Create a listing' : 'Get started'}
               <ArrowRight size={16} />
             </Link>
-            <Link to="/notes" className="btn-secondary h-12 gap-2 rounded-2xl border-white/15 bg-white/10 text-white hover:bg-white/15">
+            <Link to="/notes" className="btn-secondary h-12 gap-2 rounded-2xl px-5">
               Browse notes
             </Link>
           </div>
@@ -548,7 +548,7 @@ export default function Marketplace() {
         </div>
 
         <div className="mt-8 flex flex-col gap-3 border-t border-border pt-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} CampusShare. All rights reserved.</p>
+          <p>Copyright {new Date().getFullYear()} CampusShare. All rights reserved.</p>
           <p>Designed for a fast, mobile-friendly campus resource exchange.</p>
         </div>
       </footer>

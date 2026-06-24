@@ -109,7 +109,7 @@ export default function CreateListing() {
         <div className="hero-gradient relative overflow-hidden px-6 py-8 text-white sm:px-8">
           <div className="absolute inset-0 opacity-40">
             <div className="absolute -left-12 top-0 h-48 w-48 rounded-full bg-white/15 blur-3xl" />
-            <div className="absolute right-0 top-10 h-56 w-56 rounded-full bg-emerald-300/15 blur-3xl" />
+            <div className="absolute right-0 top-10 h-56 w-56 rounded-full bg-primary-soft/40 blur-3xl" />
           </div>
           <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
@@ -160,7 +160,7 @@ export default function CreateListing() {
 
         <div className="section-shell">
           <h2 className="section-title flex items-center gap-2">
-            <Package size={16} className="text-brand-600 dark:text-brand-400" />
+            <Package size={16} className="text-primary" />
             Basic information
           </h2>
 
@@ -182,13 +182,13 @@ export default function CreateListing() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="form-group">
               <label className="label" htmlFor="price">
-                Price (₹){' '}
+                Price (INR){' '}
                 {form.type === 'EXCHANGE' && (
-                  <span className="text-xs font-medium text-slate-400">(or 0 for exchange)</span>
+                  <span className="text-xs font-medium text-muted">(or 0 for exchange)</span>
                 )}
               </label>
               <div className="input-wrapper">
-                <span className="input-icon text-slate-400">₹</span>
+                <span className="input-icon text-muted">INR</span>
                 <input
                   id="price"
                   name="price"
@@ -245,7 +245,7 @@ export default function CreateListing() {
 
         <div className="section-shell">
           <h2 className="section-title flex items-center gap-2">
-            <Tag size={16} className="text-brand-600 dark:text-brand-400" />
+            <Tag size={16} className="text-primary" />
             Listing type
           </h2>
           <div className="grid gap-3 md:grid-cols-3">
@@ -256,15 +256,15 @@ export default function CreateListing() {
                 onClick={() => setForm(f => ({ ...f, type: t.value }))}
                 className={`rounded-3xl border p-4 text-left transition-all ${
                   form.type === t.value
-                    ? 'border-brand-500 bg-brand-50 shadow-sm dark:bg-brand-900/20'
-                    : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-700'
+                    ? 'border-primary bg-primary-soft shadow-sm'
+                    : 'border-border bg-surface hover:border-primary/40'
                 }`}
               >
                 <div className="text-2xl">{t.icon}</div>
-                <div className="mt-3 font-semibold text-slate-900 dark:text-slate-100">
+                <div className="mt-3 font-semibold text-foreground">
                   {t.label}
                 </div>
-                <div className="mt-1 text-xs leading-6 text-slate-500 dark:text-slate-400">
+                <div className="mt-1 text-xs leading-6 text-muted">
                   {t.desc}
                 </div>
               </button>
@@ -274,7 +274,7 @@ export default function CreateListing() {
 
         <div className="section-shell">
           <h2 className="section-title flex items-center gap-2">
-            <Layers size={16} className="text-brand-600 dark:text-brand-400" />
+            <Layers size={16} className="text-primary" />
             Item condition
           </h2>
           <div className="grid gap-2 sm:grid-cols-5">
@@ -285,12 +285,12 @@ export default function CreateListing() {
                 onClick={() => setForm(f => ({ ...f, condition: c.value }))}
                 className={`rounded-3xl border p-3 text-center transition-all ${
                   form.condition === c.value
-                    ? 'border-brand-500 bg-brand-50 shadow-sm dark:bg-brand-900/20'
-                    : 'border-slate-200 bg-white hover:border-brand-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-700'
+                    ? 'border-primary bg-primary-soft shadow-sm'
+                    : 'border-border bg-surface hover:border-primary/40'
                 }`}
               >
-                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">{c.label}</div>
-                <div className="mt-1 text-[10px] leading-4 text-slate-400 dark:text-slate-500">{c.desc}</div>
+                <div className="text-sm font-semibold text-foreground">{c.label}</div>
+                <div className="mt-1 text-[10px] leading-4 text-muted">{c.desc}</div>
               </button>
             ))}
           </div>
@@ -298,23 +298,23 @@ export default function CreateListing() {
 
         <div className="section-shell">
           <h2 className="section-title flex items-center gap-2">
-            <ImageIcon size={16} className="text-brand-600 dark:text-brand-400" />
-            Photos <span className="text-sm font-normal text-slate-400">(up to 5)</span>
+            <ImageIcon size={16} className="text-primary" />
+            Photos <span className="text-sm font-normal text-muted">(up to 5)</span>
           </h2>
 
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {previews.map((src, i) => (
-              <div key={i} className="group relative aspect-square overflow-hidden rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-800">
+              <div key={i} className="group relative aspect-square overflow-hidden rounded-3xl border border-border bg-surface-elevated">
                 <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => removeFile(i)}
-                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-surface/85 text-foreground opacity-0 transition-opacity group-hover:opacity-100"
                 >
                   <X size={12} />
                 </button>
                 {i === 0 && (
-                  <span className="absolute left-2 bottom-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white">
+                  <span className="absolute left-2 bottom-2 rounded-full bg-surface/85 px-2 py-0.5 text-[10px] font-semibold text-foreground">
                     Cover
                   </span>
                 )}
@@ -322,9 +322,9 @@ export default function CreateListing() {
             ))}
 
             {previews.length < 5 && (
-              <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-slate-300 bg-white text-center transition-colors hover:border-brand-400 hover:bg-brand-50/40 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-brand-600 dark:hover:bg-brand-900/10">
-                <Upload size={18} className="text-slate-400 dark:text-slate-500" />
-                <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border bg-surface text-center transition-colors hover:border-primary/40 hover:bg-primary-soft/30">
+                <Upload size={18} className="text-muted" />
+                <span className="text-xs font-semibold text-muted">
                   Add photo
                 </span>
                 <input
@@ -339,7 +339,7 @@ export default function CreateListing() {
           </div>
 
           {files.length > 0 && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted">
               {files.length} photo{files.length > 1 ? 's' : ''} selected. First photo will be the
               cover image.
             </p>

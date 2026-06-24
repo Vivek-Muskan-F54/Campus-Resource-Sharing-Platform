@@ -4,7 +4,7 @@ const variants = {
   amber: 'bg-warning-soft text-warning ring-1 ring-warning/12',
   red: 'bg-danger-soft text-danger ring-1 ring-danger/12',
   slate: 'bg-surface-elevated text-muted ring-1 ring-border',
-  purple: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-900/50',
+  purple: 'bg-info-soft text-info ring-1 ring-info/12',
   blue: 'bg-info-soft text-info ring-1 ring-info/12',
 }
 

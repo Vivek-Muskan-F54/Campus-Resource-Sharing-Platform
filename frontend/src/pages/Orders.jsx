@@ -178,33 +178,33 @@ export default function Orders() {
             return (
               <div key={order.id} className="card overflow-hidden">
                 <div className="flex flex-wrap items-start gap-4">
-                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
+                  <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl bg-surface-elevated">
                     {image ? (
                       <img src={image} alt={order.product?.title} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
-                        <Package size={20} className="text-slate-400" />
+                        <Package size={20} className="text-muted" />
                       </div>
                     )}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="mb-1 flex flex-wrap items-center gap-2">
-                      <h3 className="truncate font-semibold text-slate-900 dark:text-slate-100">
+                      <h3 className="truncate font-semibold text-foreground">
                         {order.product?.title || 'Unknown Product'}
                       </h3>
                       <StatusBadge status={order.status} />
                     </div>
-                    <div className="space-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="space-y-0.5 text-xs text-muted">
                       <p>Order #{order.id}</p>
                       {order.buyerName && (
                         <p>
-                          Buyer: <span className="text-slate-600 dark:text-slate-300">{order.buyerName}</span>
+                          Buyer: <span className="text-foreground">{order.buyerName}</span>
                         </p>
                       )}
                       {order.sellerName && (
                         <p>
-                          Seller: <span className="text-slate-600 dark:text-slate-300">{order.sellerName}</span>
+                          Seller: <span className="text-foreground">{order.sellerName}</span>
                         </p>
                       )}
                     </div>
@@ -233,8 +233,8 @@ export default function Orders() {
                     )}
 
                     {order.status === 'READY_FOR_HANDOVER' && qrUrls[order.id] && (
-                      <div className="rounded-3xl border border-dashed border-brand-300 bg-brand-50 p-3 text-center dark:border-brand-700 dark:bg-brand-900/20">
-                        <p className="mb-2 flex items-center justify-center gap-1 text-xs font-medium text-slate-600 dark:text-slate-400">
+                      <div className="rounded-3xl border border-dashed border-primary/20 bg-primary-soft p-3 text-center">
+                        <p className="mb-2 flex items-center justify-center gap-1 text-xs font-medium text-muted">
                           <QrCode size={12} />
                           Scan to complete handover
                         </p>
@@ -247,21 +247,21 @@ export default function Orders() {
                     )}
 
                     {order.status === 'COMPLETED' && (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-success">
                         <CheckCircle size={16} />
                         Completed
                       </div>
                     )}
 
                     {order.status === 'REJECTED' && (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-red-500">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-danger">
                         <XCircle size={16} />
                         Rejected
                       </div>
                     )}
 
                     {order.status === 'CANCELLED' && (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-slate-400">
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-muted">
                         <XCircle size={16} />
                         Cancelled
                       </div>

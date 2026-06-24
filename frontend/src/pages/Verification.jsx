@@ -119,7 +119,7 @@ export default function Verification() {
             </div>
           </div>
           {verification.adminRemarks && (
-            <div className="mt-3 rounded-2xl bg-white/60 px-4 py-3 text-sm dark:bg-black/20">
+            <div className="mt-3 rounded-2xl bg-surface-elevated/70 px-4 py-3 text-sm text-foreground">
               <span className="font-semibold">Admin note: </span>
               {verification.adminRemarks}
             </div>

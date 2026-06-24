@@ -99,22 +99,22 @@ export default function QrVerify() {
           Back to Orders
         </button>
         <h1 className="page-title flex items-center gap-2">
-          <QrCode className="text-brand-600 dark:text-brand-400" />
+          <QrCode className="text-primary" />
           QR Verification
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">
+        <p className="mt-1 text-muted">
           Scan the seller's handover QR code or paste the token to complete the order.
         </p>
       </div>
 
       {/* Camera section */}
       <div className="card space-y-4">
-        <h2 className="font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <Camera size={16} className="text-brand-600 dark:text-brand-400" />
+        <h2 className="flex items-center gap-2 font-medium text-foreground">
+          <Camera size={16} className="text-primary" />
           Camera Scanner
         </h2>
 
-        <div className="overflow-hidden rounded-2xl bg-slate-900 aspect-video relative">
+        <div className="relative aspect-video overflow-hidden rounded-2xl bg-surface-elevated">
           <video
             ref={videoRef}
             className="h-full w-full object-cover"
@@ -123,21 +123,21 @@ export default function QrVerify() {
           />
           {!scanning && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-              <div className="rounded-2xl bg-white/10 p-5">
-                <QrCode size={36} className="text-white/60" />
+              <div className="rounded-2xl bg-surface/10 p-5">
+                <QrCode size={36} className="text-foreground/60" />
               </div>
-              <p className="text-white/50 text-sm">Camera preview</p>
+              <p className="text-sm text-muted">Camera preview</p>
             </div>
           )}
           {scanning && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="h-48 w-48 border-2 border-brand-400 rounded-2xl" style={{
+              <div className="h-48 w-48 rounded-2xl border-2 border-primary" style={{
                 boxShadow: '0 0 0 9999px rgb(var(--color-overlay) / 0.5)'
               }}>
-                <div className="absolute top-0 left-0 h-4 w-4 border-t-4 border-l-4 border-brand-400 rounded-tl" />
-                <div className="absolute top-0 right-0 h-4 w-4 border-t-4 border-r-4 border-brand-400 rounded-tr" />
-                <div className="absolute bottom-0 left-0 h-4 w-4 border-b-4 border-l-4 border-brand-400 rounded-bl" />
-                <div className="absolute bottom-0 right-0 h-4 w-4 border-b-4 border-r-4 border-brand-400 rounded-br" />
+                <div className="absolute left-0 top-0 h-4 w-4 rounded-tl border-l-4 border-t-4 border-primary" />
+                <div className="absolute right-0 top-0 h-4 w-4 rounded-tr border-r-4 border-t-4 border-primary" />
+                <div className="absolute bottom-0 left-0 h-4 w-4 rounded-bl border-b-4 border-l-4 border-primary" />
+                <div className="absolute bottom-0 right-0 h-4 w-4 rounded-br border-b-4 border-r-4 border-primary" />
               </div>
             </div>
           )}
@@ -160,8 +160,8 @@ export default function QrVerify() {
 
       {/* Manual token entry */}
       <form onSubmit={verify} className="card space-y-4">
-        <h2 className="font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
-          <QrCode size={16} className="text-brand-600 dark:text-brand-400" />
+        <h2 className="flex items-center gap-2 font-medium text-foreground">
+          <QrCode size={16} className="text-primary" />
           Manual Token Entry
         </h2>
 

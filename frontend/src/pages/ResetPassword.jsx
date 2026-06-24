@@ -40,11 +40,11 @@ export default function ResetPassword() {
     <div className="flex min-h-[70vh] items-center justify-center py-8 animate-in">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 mb-4 shadow-glow">
-            <Lock size={22} className="text-white" />
+          <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-soft text-primary shadow-sm ring-1 ring-primary/10">
+            <Lock size={22} />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Reset password</h1>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-2xl font-bold text-foreground">Reset password</h1>
+          <p className="mt-1.5 text-sm text-muted">
             Choose a new password for your account
           </p>
         </div>
@@ -83,7 +83,7 @@ export default function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => setShowPwd(v => !v)}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  className="absolute inset-y-0 right-3 flex items-center text-muted hover:text-foreground"
                   tabIndex={-1}
                 >
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -115,8 +115,8 @@ export default function ResetPassword() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-            <Link to="/login" className="inline-flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400 hover:underline">
+          <p className="text-center text-sm text-muted">
+            <Link to="/login" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
               <ArrowLeft size={14} />
               Back to sign in
             </Link>

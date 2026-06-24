@@ -429,7 +429,7 @@ export default function Chat() {
             </button>
           </div>
           <p className="mt-1.5 px-1 text-[10px] text-muted">
-            Press Enter to send • Shift+Enter for new line
+            Press Enter to send - Shift+Enter for new line
           </p>
         </div>
       </div>

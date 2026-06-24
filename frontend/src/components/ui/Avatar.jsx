@@ -18,7 +18,7 @@ export default function Avatar({ name = '', src = null, size = 'md', className =
   const colors = [
     'bg-primary-soft text-primary ring-1 ring-primary/12',
     'bg-success-soft text-success ring-1 ring-success/12',
-    'bg-violet-50 text-violet-700 ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-900/50',
+    'bg-info-soft text-info ring-1 ring-info/12',
     'bg-warning-soft text-warning ring-1 ring-warning/12',
     'bg-danger-soft text-danger ring-1 ring-danger/12',
     'bg-info-soft text-info ring-1 ring-info/12',
