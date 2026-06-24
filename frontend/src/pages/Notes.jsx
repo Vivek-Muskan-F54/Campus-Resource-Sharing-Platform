@@ -147,12 +147,12 @@ function RatingStars({ value = 0, onChange, readonly = false, size = 16 }) {
             type="button"
             disabled={readonly}
             onClick={() => onChange?.(starValue)}
-            className={`transition-colors ${readonly ? 'cursor-default' : 'hover:scale-110'}`}
+            className={`rounded-full p-0.5 transition-all ${readonly ? 'cursor-default' : 'hover:scale-110'}`}
             aria-label={`Rate ${starValue} star${starValue > 1 ? 's' : ''}`}
           >
             <Star
               size={size}
-              className={filled ? 'text-amber-500' : 'text-slate-300 dark:text-slate-600'}
+              className={filled ? 'text-warning' : 'text-border-strong'}
               fill={filled ? 'currentColor' : 'none'}
             />
           </button>
@@ -223,7 +223,7 @@ function Pagination({ page, totalPages, onPageChange }) {
         type="button"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages - 1}
-        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+        className="pagination-button"
       >
         Next
         <ChevronRight size={14} />
@@ -244,17 +244,17 @@ function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRat
   return (
     <Modal open={!!note} onClose={onClose} title={note ? note.title : 'Preview note'} size="xl">
       {note && (
-        <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="space-y-4">
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-950">
+            <div className="overflow-hidden rounded-[28px] border border-border bg-surface-elevated shadow-sm">
               {previewUrl ? (
                 <iframe
                   title={note.title}
                   src={previewUrl}
-                  className="h-[70vh] w-full"
+                  className="h-[72vh] w-full lg:h-[78vh]"
                 />
               ) : (
-                <div className="flex h-[70vh] items-center justify-center text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex h-[72vh] items-center justify-center text-sm text-muted lg:h-[78vh]">
                   Preview unavailable for this note.
                 </div>
               )}
@@ -268,7 +268,7 @@ function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRat
               <button
                 type="button"
                 onClick={() => onToggleBookmark(note.id)}
-                className={`btn-secondary gap-2 ${bookmarked ? 'border-brand-300 text-brand-700 dark:border-brand-700 dark:text-brand-300' : ''}`}
+                className={`btn-secondary gap-2 ${bookmarked ? 'border-primary bg-primary-soft text-primary' : ''}`}
               >
                 {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
                 {bookmarked ? 'Saved' : 'Save note'}
@@ -286,50 +286,50 @@ function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRat
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60">
+            <div className="rounded-[28px] border border-border bg-surface p-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-600 dark:text-brand-400">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                     Note details
                   </p>
-                  <h3 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+                  <h3 className="mt-1 text-lg font-bold text-foreground">
                     {note.title}
                   </h3>
                 </div>
-                <div className="rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-900">
-                  <FileText size={20} className="text-red-500 dark:text-red-400" />
+                <div className="rounded-2xl bg-primary-soft p-3 text-primary shadow-sm">
+                  <FileText size={20} />
                 </div>
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl bg-white p-3 dark:bg-slate-900">
-                  <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Branch</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">{note.branch}</p>
+                <div className="rounded-2xl bg-surface-elevated p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">Branch</p>
+                  <p className="mt-1 font-semibold text-foreground">{note.branch}</p>
                 </div>
-                <div className="rounded-xl bg-white p-3 dark:bg-slate-900">
-                  <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Semester</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">Sem {note.semester}</p>
+                <div className="rounded-2xl bg-surface-elevated p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">Semester</p>
+                  <p className="mt-1 font-semibold text-foreground">Sem {note.semester}</p>
                 </div>
-                <div className="rounded-xl bg-white p-3 dark:bg-slate-900">
-                  <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Subject</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">{note.subject}</p>
+                <div className="rounded-2xl bg-surface-elevated p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">Subject</p>
+                  <p className="mt-1 font-semibold text-foreground">{note.subject}</p>
                 </div>
-                <div className="rounded-xl bg-white p-3 dark:bg-slate-900">
-                  <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Downloads</p>
-                  <p className="mt-1 font-semibold text-slate-900 dark:text-slate-100">
+                <div className="rounded-2xl bg-surface-elevated p-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted">Downloads</p>
+                  <p className="mt-1 font-semibold text-foreground">
                     {note.downloadCount ?? 0}
                   </p>
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-xl bg-white p-3 dark:bg-slate-900">
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-surface-elevated p-3">
                 <div>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Your rating</p>
+                  <p className="text-xs text-muted">Your rating</p>
                   <div className="mt-1">
                     <RatingStars value={rating || 0} onChange={onRate} />
                   </div>
                 </div>
-                <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+                <div className="text-right text-xs text-muted">
                   <p>{note.originalFilename || 'PDF document'}</p>
                   {note.fileSize ? <p className="mt-1">{formatFileSize(note.fileSize)}</p> : null}
                 </div>
@@ -337,11 +337,11 @@ function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRat
             </div>
 
             {note.uploaderName && (
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+              <div className="rounded-[28px] border border-border bg-surface p-4 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
                   Uploaded by
                 </p>
-                <p className="mt-2 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <p className="mt-2 text-sm font-semibold text-foreground">
                   {note.uploaderName}
                 </p>
               </div>
@@ -360,23 +360,23 @@ function NoteCard({ note, bookmarked, rating, onToggleBookmark, onOpenPreview, o
 
   return (
     <article
-      className="group card overflow-hidden p-0 transition-all hover:-translate-y-0.5 hover:shadow-card-hover cursor-pointer"
+      className="group card overflow-hidden p-0 transition-all hover:-translate-y-1 hover:shadow-lg cursor-pointer"
       onClick={() => onOpenPreview(note)}
       role="button"
       tabIndex={0}
       onKeyDown={e => e.key === 'Enter' && onOpenPreview(note)}
     >
       <div className="flex w-full flex-col text-left">
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-cyan-500/10 p-4">
+        <div className="relative overflow-hidden bg-surface-elevated p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm dark:bg-slate-900">
-              <FileText size={22} className="text-red-500 dark:text-red-400" />
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-surface text-primary shadow-sm ring-1 ring-border">
+              <FileText size={22} />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 dark:text-white">
+              <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
                 {note.title}
               </h3>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-xs text-muted">
                 by {note.uploaderName || 'Anonymous'}
               </p>
             </div>
@@ -388,8 +388,8 @@ function NoteCard({ note, bookmarked, rating, onToggleBookmark, onOpenPreview, o
               }}
               className={`rounded-xl p-2 transition-all ${
                 bookmarked
-                  ? 'bg-brand-600 text-white shadow-sm'
-                  : 'bg-white text-slate-400 hover:text-brand-600 dark:bg-slate-900 dark:hover:text-brand-400'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-surface text-muted hover:text-primary'
               }`}
               aria-label={bookmarked ? 'Remove bookmark' : 'Bookmark this note'}
               title={bookmarked ? 'Remove bookmark' : 'Save for later'}
@@ -412,7 +412,7 @@ function NoteCard({ note, bookmarked, rating, onToggleBookmark, onOpenPreview, o
 
         <div className="space-y-4 p-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 text-xs text-muted">
               <Download size={12} />
               <span>{downloadCount} downloads</span>
             </div>
@@ -421,22 +421,22 @@ function NoteCard({ note, bookmarked, rating, onToggleBookmark, onOpenPreview, o
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-              <p className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">Preview</p>
-              <p className="mt-1 truncate font-medium text-slate-700 dark:text-slate-300">PDF ready</p>
+          <div className="grid grid-cols-2 gap-2 text-xs text-muted">
+            <div className="rounded-2xl bg-surface-elevated px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wide text-muted">Preview</p>
+              <p className="mt-1 truncate font-medium text-foreground">PDF ready</p>
             </div>
-            <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
-              <p className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">File size</p>
-              <p className="mt-1 truncate font-medium text-slate-700 dark:text-slate-300">
+            <div className="rounded-2xl bg-surface-elevated px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wide text-muted">File size</p>
+              <p className="mt-1 truncate font-medium text-foreground">
                 {fileSize || 'Unknown'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="flex items-center justify-between gap-2 text-[11px] text-muted">
             <span className="truncate">{createdAt || 'Recently added'}</span>
-            <span className="inline-flex items-center gap-1 font-medium text-brand-600 dark:text-brand-400">
+            <span className="inline-flex items-center gap-1 font-medium text-primary">
               Preview note
               <Eye size={12} />
             </span>
@@ -474,7 +474,7 @@ function LoadingSkeletons() {
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 6 }).map((_, index) => (
         <div key={index} className="card overflow-hidden p-0 animate-pulse">
-          <div className="h-40 bg-slate-100 dark:bg-slate-800" />
+          <div className="h-40 bg-surface-elevated" />
           <div className="space-y-3 p-4">
             <div className="skeleton h-4 w-3/4 rounded-lg" />
             <div className="skeleton h-3 w-1/2 rounded-lg" />
@@ -827,15 +827,15 @@ export default function Notes() {
       <section className="space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Saved notes</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <h2 className="text-xl font-bold text-foreground">Saved notes</h2>
+            <p className="text-sm text-muted">
               Bookmarked notes stay close for quick revisits and downloads.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setShowBookmarked(v => !v)}
-            className={`btn-secondary gap-2 ${showBookmarked ? 'border-brand-300 text-brand-700 dark:border-brand-700 dark:text-brand-300' : ''}`}
+            className={`btn-secondary gap-2 ${showBookmarked ? 'border-primary bg-primary-soft text-primary' : ''}`}
           >
             {showBookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
             {showBookmarked ? 'Showing saved' : 'Show saved only'}
@@ -887,10 +887,10 @@ export default function Notes() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Browse notes</h2>
+              <h2 className="text-2xl font-bold text-foreground">Browse notes</h2>
               <Badge variant="brand">{noteCards} shown</Badge>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-muted">
               Search by title, subject, branch, or semester. Preview PDFs before downloading.
             </p>
           </div>
@@ -913,7 +913,7 @@ export default function Notes() {
                 <ChevronDown size={12} className={`transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
               </button>
               {sortOpen && (
-                <div className="absolute right-0 top-full z-20 mt-2 min-w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                <div className="absolute right-0 top-full z-20 mt-2 min-w-56 rounded-2xl border border-border bg-surface p-2 shadow-lg">
                   {SORT_OPTIONS.map(option => {
                     const Icon = option.icon
                     return (
@@ -925,8 +925,8 @@ export default function Notes() {
                           setPage(0)
                           setSortOpen(false)
                         }}
-                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                          option.value === sortBy ? 'text-brand-600 dark:text-brand-400' : 'text-slate-700 dark:text-slate-300'
+                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors hover:bg-surface-elevated ${
+                          option.value === sortBy ? 'text-primary' : 'text-foreground'
                         }`}
                       >
                         <Icon size={13} />
@@ -942,7 +942,7 @@ export default function Notes() {
               <Filter size={14} />
               Filters
               {activeCount > 0 && (
-                <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-white">
                   {activeCount}
                 </span>
               )}
@@ -956,16 +956,16 @@ export default function Notes() {
         </div>
 
         {showFilters && (
-          <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+          <div className="rounded-[28px] border border-border bg-surface/80 p-4 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Filters</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Use chips for quick narrowing across branches, subjects, and semesters.</p>
+                <h3 className="text-sm font-semibold text-foreground">Filters</h3>
+                <p className="text-xs text-muted">Use chips for quick narrowing across branches, subjects, and semesters.</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowFilters(false)}
-                className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-white hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                className="rounded-full p-1.5 text-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
               >
                 <X size={14} />
               </button>
@@ -973,7 +973,7 @@ export default function Notes() {
 
             <div className="space-y-5">
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Branch</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Branch</p>
                 <div className="flex flex-wrap gap-2">
                   <Chip label="All" active={!filters.branch} onClick={() => updateFilter('branch', '')} />
                   {POPULAR_BRANCHES.map(branch => (
@@ -988,7 +988,7 @@ export default function Notes() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Subject</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Subject</p>
                 <div className="flex flex-wrap gap-2">
                   <Chip label="All" active={!filters.subject} onClick={() => updateFilter('subject', '')} />
                   {POPULAR_SUBJECTS.map(subject => (
@@ -1003,7 +1003,7 @@ export default function Notes() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Semester</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Semester</p>
                 <div className="flex flex-wrap gap-2">
                   <Chip label="All" active={!filters.semester} onClick={() => updateFilter('semester', '')} />
                   {SEMESTERS.map(semester => (
@@ -1024,21 +1024,21 @@ export default function Notes() {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Subject search</span>
+                  <span className="text-xs font-medium text-muted">Subject search</span>
                   <input
                     value={filters.subject}
                     onChange={e => updateFilter('subject', e.target.value)}
                     placeholder="Type a subject"
-                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-2xl border border-border bg-surface px-3 text-sm outline-none transition-colors focus:border-primary"
                   />
                 </label>
 
                 <label className="space-y-1.5">
-                  <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Semester search</span>
+                  <span className="text-xs font-medium text-muted">Semester search</span>
                   <select
                     value={filters.semester}
                     onChange={e => updateFilter('semester', e.target.value)}
-                    className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm outline-none transition-colors focus:border-brand-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-2xl border border-border bg-surface px-3 text-sm outline-none transition-colors focus:border-primary"
                   >
                     <option value="">All semesters</option>
                     {SEMESTERS.map(semester => (
@@ -1050,8 +1050,8 @@ export default function Notes() {
                 </label>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
-                <span className="text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
+                <span className="text-xs font-medium uppercase tracking-wide text-muted">
                   Quick searches
                 </span>
                 {recentSearches.map(term => (
@@ -1059,14 +1059,14 @@ export default function Notes() {
                     key={term}
                     type="button"
                     onClick={() => updateFilter('q', term)}
-                    className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                    className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:border-primary/35 hover:text-primary"
                   >
                     {term}
                   </button>
                 ))}
               </div>
 
-              <div className="flex justify-end gap-2 border-t border-slate-200 pt-4 dark:border-slate-800">
+              <div className="flex justify-end gap-2 border-t border-border pt-4">
                 <button type="button" onClick={clearFilters} className="btn-secondary text-sm">
                   Reset
                 </button>
@@ -1115,12 +1115,12 @@ export default function Notes() {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/40">
-          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-            <Star size={14} className="text-amber-500" />
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface-elevated px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <Star size={14} className="text-warning" />
             Showing {noteCards} of {totalElements} notes
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+          <div className="hidden items-center gap-2 text-xs text-muted sm:flex">
             <Eye size={12} />
             Preview before downloading
           </div>
@@ -1160,13 +1160,23 @@ export default function Notes() {
         ) : (
           <EmptyState
             icon={BookOpen}
-            title={showBookmarked ? 'No saved notes yet' : activeCount > 0 ? 'No notes match your filters' : 'No notes yet'}
+            title={
+              showBookmarked
+                ? 'No saved notes yet'
+                : activeCount > 0
+                  ? 'No notes match your filters'
+                  : totalElements === 0
+                    ? 'No approved notes yet'
+                    : 'No notes yet'
+            }
             description={
               showBookmarked
                 ? 'Save notes you like to keep them in your personal quick-access list.'
                 : activeCount > 0
                   ? 'Try widening your subject, semester, or branch filters.'
-                  : 'Be the first to share study material for your classmates.'
+                  : totalElements === 0
+                    ? 'Approved notes will appear here once they are available.'
+                    : 'Be the first to share study material for your classmates.'
             }
             action={
               showBookmarked ? (
@@ -1286,8 +1296,8 @@ export default function Notes() {
                     onClick={() => setUploadForm(f => ({ ...f, semester }))}
                     className={`h-9 rounded-xl border px-3 text-sm font-medium transition-all ${
                       uploadForm.semester === semester
-                        ? 'border-brand-600 bg-brand-600 text-white'
-                        : 'border-slate-200 text-slate-600 hover:border-brand-400 dark:border-slate-700 dark:text-slate-300'
+                        ? 'border-primary bg-primary text-white'
+                        : 'border-border text-muted hover:border-primary/35 hover:text-primary'
                     }`}
                   >
                     Sem {semester}
@@ -1304,18 +1314,18 @@ export default function Notes() {
                 htmlFor="note-file"
                 className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl border-2 border-dashed px-4 py-3 transition-all ${
                   file
-                    ? 'border-brand-400 bg-brand-50 dark:border-brand-600 dark:bg-brand-900/20'
-                    : 'border-slate-300 hover:border-brand-400 dark:border-slate-700 dark:hover:border-brand-600'
+                    ? 'border-primary bg-primary-soft'
+                    : 'border-border hover:border-primary/35'
                 }`}
               >
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-red-100 dark:bg-red-900/30">
-                  <FileText size={16} className="text-red-500 dark:text-red-400" />
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                  <FileText size={16} />
                 </div>
                 <div className="min-w-0 flex-1 text-sm">
                   {file ? (
-                    <span className="block truncate font-medium text-brand-600 dark:text-brand-400">{file.name}</span>
+                    <span className="block truncate font-medium text-primary">{file.name}</span>
                   ) : (
-                    <span className="text-slate-400 dark:text-slate-500">Click to select a PDF file</span>
+                    <span className="text-muted">Click to select a PDF file</span>
                   )}
                 </div>
                 {file && (
@@ -1325,7 +1335,7 @@ export default function Notes() {
                       e.preventDefault()
                       setFile(null)
                     }}
-                    className="text-slate-400 transition-colors hover:text-red-500"
+                    className="text-muted transition-colors hover:text-danger"
                   >
                     <X size={15} />
                   </button>
@@ -1342,7 +1352,7 @@ export default function Notes() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+          <div className="rounded-xl border border-warning/20 bg-warning-soft px-4 py-3 text-xs text-warning">
             Your note will be reviewed by admins before it appears publicly.
           </div>
 

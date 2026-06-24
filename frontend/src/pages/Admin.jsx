@@ -109,7 +109,7 @@ function combineFeed({ products, notes, notifications }) {
     type: 'marketplace',
     title: item.title,
     subtitle: item.category || 'Marketplace item',
-    meta: `Rs. ${Number(item.price || 0).toLocaleString('en-IN')} · ${item.seller || 'Campus seller'}`,
+    meta: `Rs. ${Number(item.price || 0).toLocaleString('en-IN')} - ${item.seller || 'Campus seller'}`,
     createdAt: item.createdAt,
     link: '/',
     tone: 'brand',
@@ -119,8 +119,8 @@ function combineFeed({ products, notes, notifications }) {
     id: `note-${item.id}`,
     type: 'note',
     title: item.title,
-    subtitle: `${item.branch} · Sem ${item.semester}`,
-    meta: `${item.subject} · ${item.downloadCount ?? 0} downloads`,
+    subtitle: `${item.branch} - Sem ${item.semester}`,
+    meta: `${item.subject} - ${item.downloadCount ?? 0} downloads`,
     createdAt: item.createdAt,
     link: '/notes',
     tone: 'purple',
@@ -142,16 +142,32 @@ function combineFeed({ products, notes, notifications }) {
     .slice(0, 8)
 }
 
-function StatCard({ label, value, helper, icon: Icon, accent, progress }) {
+function StatCard({ label, value, helper, icon: Icon, tone = 'brand', progress, trend }) {
+  const toneStyles = {
+    brand: 'bg-primary-soft text-primary ring-1 ring-primary/10',
+    success: 'bg-success-soft text-success ring-1 ring-success/10',
+    warning: 'bg-warning-soft text-warning ring-1 ring-warning/10',
+    danger: 'bg-danger-soft text-danger ring-1 ring-danger/10',
+    info: 'bg-info-soft text-info ring-1 ring-info/10',
+    slate: 'bg-surface-elevated text-muted ring-1 ring-border',
+  }
   return (
-    <div className="card overflow-hidden">
+    <div className="card overflow-hidden border-border/80 shadow-sm">
       <div className="flex items-start justify-between gap-4">
-        <div className={`rounded-2xl p-3 ${accent}`}>
-          <Icon size={20} className="text-white" />
+        <div className={`rounded-2xl p-3 ${toneStyles[tone] || toneStyles.brand}`}>
+          <Icon size={20} />
         </div>
-        <Badge variant="slate" className="shrink-0">
-          Live
-        </Badge>
+        <div className="flex flex-col items-end gap-2">
+          <Badge variant="slate" className="shrink-0">
+            Live
+          </Badge>
+          {trend && (
+            <Badge variant={trend.variant || 'emerald'} className="shrink-0">
+              <TrendingUp size={12} />
+              {trend.label}
+            </Badge>
+          )}
+        </div>
       </div>
       <div className="mt-4">
         <p className="text-3xl font-bold text-foreground">{value ?? 0}</p>
@@ -159,7 +175,7 @@ function StatCard({ label, value, helper, icon: Icon, accent, progress }) {
         {helper && <p className="mt-1 text-xs text-muted">{helper}</p>}
       </div>
       {typeof progress === 'number' && (
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-surface-elevated">
           <div
             className="h-full rounded-full bg-gradient-to-r from-primary to-success"
             style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
@@ -172,10 +188,10 @@ function StatCard({ label, value, helper, icon: Icon, accent, progress }) {
 
 function FeedItem({ item }) {
   const toneMap = {
-    brand: 'bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-300',
-    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300',
-    amber: 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300',
-    slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    brand: 'bg-primary-soft text-primary ring-1 ring-primary/10',
+    purple: 'bg-violet-50 text-violet-700 ring-1 ring-violet-100 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-900/50',
+    amber: 'bg-warning-soft text-warning ring-1 ring-warning/10',
+    slate: 'bg-surface-elevated text-muted ring-1 ring-border',
   }
 
   const iconMap = {
@@ -192,7 +208,7 @@ function FeedItem({ item }) {
   return (
     <a
       href={item.link || '#'}
-      className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 transition-all hover:-translate-y-0.5 hover:shadow-md"
+      className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-border-strong hover:shadow-md"
     >
       <div className={`rounded-2xl p-2.5 ${toneMap[item.tone] || toneMap.slate}`}>
         <Icon size={16} />
@@ -207,11 +223,11 @@ function FeedItem({ item }) {
               {item.subtitle}
             </p>
           </div>
-          <ChevronRight size={14} className="mt-0.5 flex-shrink-0 text-slate-300 dark:text-slate-600" />
+          <ChevronRight size={14} className="mt-0.5 flex-shrink-0 text-muted" />
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <span>{item.meta}</span>
-          {item.createdAt && <span>• {formatTime(item.createdAt)}</span>}
+          {item.createdAt && <span>- {formatTime(item.createdAt)}</span>}
         </div>
       </div>
     </a>
@@ -220,7 +236,7 @@ function FeedItem({ item }) {
 
 function ActivityRow({ label, value, hint }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-800/40">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-elevated px-4 py-3 shadow-sm">
       <div>
         <p className="text-sm font-medium text-foreground">{label}</p>
         {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
@@ -322,35 +338,47 @@ export default function Admin() {
 
     return [
       {
-        label: 'Users',
+        label: 'Total users',
         value: stats.totalUsers,
         helper: `${stats.activeUsers} active accounts`,
         icon: Users,
-        accent: 'bg-gradient-to-br from-brand-600 to-brand-500',
+        tone: 'brand',
+        trend: { label: `${activeUserRatio}% active`, variant: 'brand' },
         progress: activeUserRatio,
       },
       {
-        label: 'Products',
+        label: 'Listings',
         value: stats.totalProducts,
         helper: `${stats.activeProducts} active listings`,
         icon: Package,
-        accent: 'bg-gradient-to-br from-emerald-600 to-emerald-500',
+        tone: 'success',
+        trend: { label: `${activeProductRatio}% live`, variant: 'emerald' },
         progress: activeProductRatio,
       },
       {
-        label: 'Notes',
+        label: 'Total notes',
         value: stats.totalNotes,
         helper: `${stats.approvedNotes} approved notes`,
         icon: FileText,
-        accent: 'bg-gradient-to-br from-purple-600 to-purple-500',
+        tone: 'info',
+        trend: { label: `${approvedNoteRatio}% approved`, variant: 'blue' },
         progress: approvedNoteRatio,
       },
       {
-        label: 'Pending verifications',
+        label: 'Pending notes',
+        value: stats.pendingNotes,
+        helper: 'Awaiting moderation review',
+        icon: Clock,
+        tone: 'warning',
+        trend: { label: `${stats.pendingNotes || 0} queued`, variant: 'amber' },
+      },
+      {
+        label: 'Verification requests',
         value: stats.pendingVerifications,
         helper: `${stats.verifiedStudents} verified students`,
         icon: ShieldCheck,
-        accent: 'bg-gradient-to-br from-amber-500 to-orange-500',
+        tone: 'warning',
+        trend: { label: `${verifiedStudentRatio}% verified`, variant: 'amber' },
         progress: verifiedStudentRatio,
       },
       {
@@ -358,14 +386,16 @@ export default function Admin() {
         value: stats.totalOrders,
         helper: 'Marketplace order volume',
         icon: TrendingUp,
-        accent: 'bg-gradient-to-br from-blue-600 to-cyan-500',
+        tone: 'success',
+        trend: { label: 'Marketplace flow', variant: 'emerald' },
       },
       {
         label: 'Messages',
         value: stats.totalMessages,
         helper: 'Platform conversation activity',
         icon: MessageCircle,
-        accent: 'bg-gradient-to-br from-slate-700 to-slate-500',
+        tone: 'slate',
+        trend: { label: 'Real time', variant: 'slate' },
       },
     ]
   }, [stats])
@@ -412,12 +442,12 @@ export default function Admin() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-emerald-500 p-3 shadow-lg shadow-brand-600/20">
+            <div className="rounded-2xl bg-primary-soft p-3 ring-1 ring-primary/10">
               <LayoutDashboard size={20} className="text-white" />
             </div>
             <div>
               <h1 className="page-title">Admin Dashboard</h1>
-              <p className="text-slate-500 dark:text-slate-400">
+              <p className="text-muted">
                 A live view of marketplace, notes, notifications, and moderation activity.
               </p>
             </div>
@@ -430,12 +460,12 @@ export default function Admin() {
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+        <div className="rounded-2xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
           {error}
         </div>
       )}
 
-      <div className="flex gap-1 overflow-x-auto no-scrollbar border-b border-slate-200 pb-0 dark:border-slate-800">
+      <div className="flex gap-2 overflow-x-auto rounded-[24px] border border-border bg-surface p-2 shadow-sm no-scrollbar">
         {TABS.map(t => (
           <button
             key={t.id}
@@ -443,14 +473,14 @@ export default function Admin() {
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition-all -mb-px ${
               tab === t.id
-                ? 'border-brand-600 text-brand-600 dark:border-brand-400 dark:text-brand-400'
-                : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                ? 'border-primary bg-primary-soft text-primary shadow-sm'
+                : 'border-transparent text-muted hover:border-border hover:bg-surface-elevated hover:text-foreground'
             }`}
           >
             <t.icon size={15} />
             {t.label}
             {t.id === 'verifications' && verifications.length > 0 && !loading && (
-              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+              <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[10px] font-bold text-white">
                 {verifications.length}
               </span>
             )}
@@ -475,20 +505,30 @@ export default function Admin() {
           )}
 
           {!loading && stats && (
-            <div className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr]">
-              <div className="card">
+            <div className="grid gap-6 xl:grid-cols-[1.55fr_0.85fr]">
+              <div className="section-shell">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Analytics charts</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <h3 className="text-lg font-semibold text-foreground">Analytics charts</h3>
+                    <p className="text-sm text-muted">
                       Recent marketplace and notes creation trends over the last 7 days.
                     </p>
                   </div>
                   <Badge variant="slate">{trendData.length} points</Badge>
                 </div>
 
-                <div className="mt-5 grid gap-5 xl:grid-cols-[1.4fr_0.8fr]">
-                  <div className="h-80">
+                <div className="mt-5 grid gap-5 xl:grid-cols-[1.45fr_0.8fr]">
+                  <div className="h-[420px] rounded-[28px] border border-border bg-surface p-4 shadow-sm">
+                    <div className="mb-3 flex flex-wrap items-center gap-3 text-xs font-medium text-muted">
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                        Marketplace
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+                        Notes
+                      </span>
+                    </div>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={trendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <defs>
@@ -532,8 +572,11 @@ export default function Admin() {
                   </div>
 
                   <div className="space-y-4">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40">
-                      <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Platform mix</h4>
+                    <div className="surface-soft p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <h4 className="text-sm font-semibold text-foreground">Platform mix</h4>
+                        <Badge variant="brand">Overview</Badge>
+                      </div>
                       <div className="mt-4 h-56">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -588,8 +631,8 @@ export default function Admin() {
             <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
               <div className="card xl:col-span-1">
                 <div className="mb-4 flex items-center gap-2">
-                  <Activity size={16} className="text-amber-500" />
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100">Activity feed</h3>
+                  <Activity size={16} className="text-warning" />
+                  <h3 className="font-semibold text-foreground">Activity feed</h3>
                 </div>
                 {activityFeed.length ? (
                   <div className="space-y-3">
@@ -609,33 +652,33 @@ export default function Admin() {
               <div className="card">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Recent marketplace activity</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Latest active products from the marketplace.</p>
+                    <h3 className="font-semibold text-foreground">Recent marketplace activity</h3>
+                    <p className="text-sm text-muted">Latest active products from the marketplace.</p>
                   </div>
                   <Badge variant="brand">{recentProducts.length}</Badge>
                 </div>
                 {recentProducts.length ? (
                   <div className="space-y-3">
                     {recentProducts.map(item => (
-                      <div key={item.id} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+                      <div key={item.id} className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 shadow-sm">
+                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl bg-surface-elevated">
                           {item.imageUrls?.[0] ? (
                             <img src={item.imageUrls[0]} alt={item.title} className="h-full w-full object-cover" />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center">
-                              <Package size={18} className="text-slate-400 dark:text-slate-500" />
+                              <Package size={18} className="text-text-subtle" />
                             </div>
                           )}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{item.title}</p>
+                          <p className="truncate text-sm font-semibold text-foreground">{item.title}</p>
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             {item.category && <Badge variant="slate">{item.category}</Badge>}
                             {item.type && <StatusBadge status={item.type} />}
                           </div>
-                          <div className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted">
                             <span>{item.seller || 'Campus seller'}</span>
-                            <span className="font-semibold text-brand-600 dark:text-brand-400">
+                            <span className="font-semibold text-primary">
                               Rs. {Number(item.price || 0).toLocaleString('en-IN')}
                             </span>
                           </div>
@@ -651,26 +694,26 @@ export default function Admin() {
               <div className="card">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Recent notes activity</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Latest public notes and download activity.</p>
+                    <h3 className="font-semibold text-foreground">Recent notes activity</h3>
+                    <p className="text-sm text-muted">Latest public notes and download activity.</p>
                   </div>
                   <Badge variant="purple">{recentNotes.length}</Badge>
                 </div>
                 {recentNotes.length ? (
                   <div className="space-y-3">
                     {recentNotes.map(note => (
-                      <div key={note.id} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
-                        <div className="rounded-xl bg-purple-50 p-2.5 text-purple-600 dark:bg-purple-900/30 dark:text-purple-300">
+                      <div key={note.id} className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 shadow-sm">
+                        <div className="rounded-xl bg-info-soft p-2.5 text-info">
                           <FileText size={18} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">{note.title}</p>
+                          <p className="truncate text-sm font-semibold text-foreground">{note.title}</p>
                           <div className="mt-1 flex flex-wrap gap-1.5">
                             {note.branch && <Badge variant="brand">{note.branch}</Badge>}
                             {note.subject && <Badge variant="purple">{note.subject}</Badge>}
                             {note.semester && <Badge variant="slate">Sem {note.semester}</Badge>}
                           </div>
-                          <div className="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <div className="mt-2 flex items-center justify-between gap-2 text-xs text-muted">
                             <span>{note.uploaderName || 'Anonymous'}</span>
                             <span>{note.downloadCount ?? 0} downloads</span>
                           </div>
@@ -686,29 +729,29 @@ export default function Admin() {
               <div className="card lg:col-span-2 xl:col-span-1">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <h3 className="font-semibold text-slate-900 dark:text-slate-100">Recent notifications</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Notifications sent to the admin account.</p>
+                    <h3 className="font-semibold text-foreground">Recent notifications</h3>
+                    <p className="text-sm text-muted">Notifications sent to the admin account.</p>
                   </div>
                   <Badge variant="amber">{recentNotifications.length}</Badge>
                 </div>
                 {recentNotifications.length ? (
                   <div className="space-y-3">
                     {recentNotifications.map(notification => (
-                      <div key={notification.id} className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900">
+                      <div key={notification.id} className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-3 shadow-sm">
                         <div className={`rounded-xl p-2.5 ${
                           notification.readFlag
-                            ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-                            : 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
+                            ? 'bg-surface-elevated text-muted'
+                            : 'bg-warning-soft text-warning'
                         }`}>
                           <BellIcon notificationType={notification.type} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          <p className="truncate text-sm font-semibold text-foreground">
                             {notification.message}
                           </p>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted">
                             <span>{notification.type}</span>
-                            <span>•</span>
+                            <span>-</span>
                             <span>{formatTime(notification.createdAt)}</span>
                           </div>
                         </div>
@@ -761,9 +804,9 @@ export default function Admin() {
                   <div className="flex flex-wrap items-start gap-4">
                     <Avatar name={item.studentName || 'U'} size="md" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">{item.studentName}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{item.studentEmail}</p>
-                      <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                      <p className="font-semibold text-foreground">{item.studentName}</p>
+                      <p className="text-sm text-muted">{item.studentEmail}</p>
+                      <p className="mt-0.5 text-xs text-text-subtle">
                         Submitted: {new Date(item.createdAt || Date.now()).toLocaleDateString()}
                       </p>
                     </div>
@@ -821,13 +864,13 @@ export default function Admin() {
                     <Avatar name={u.name || u.email} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                        <p className="font-semibold text-slate-900 dark:text-slate-100">{u.name}</p>
+                        <p className="font-semibold text-foreground">{u.name}</p>
                         <StatusBadge status={u.verificationStatus || 'PENDING'} />
                         {!u.enabled && <Badge variant="red">Blocked</Badge>}
                       </div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{u.email}</p>
+                      <p className="text-sm text-muted">{u.email}</p>
                       {u.collegeRollNumber && (
-                        <p className="text-xs text-slate-400 dark:text-slate-500">Roll: {u.collegeRollNumber}</p>
+                        <p className="text-xs text-text-subtle">Roll: {u.collegeRollNumber}</p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -835,7 +878,7 @@ export default function Admin() {
                         <button
                           disabled={actionLoading === u.id}
                           onClick={() => act(() => adminApi.blockUser(u.id), u.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/40"
+                          className="btn-danger gap-1.5 text-sm"
                         >
                           <Ban size={13} />
                           Block
@@ -877,28 +920,28 @@ export default function Admin() {
                 return (
                   <div key={product.id} className="card">
                     <div className="flex flex-wrap items-start gap-4">
-                      <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+                      <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-surface-elevated">
                         {image ? (
                           <img src={image} alt={product.title} className="h-full w-full object-cover" />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center">
-                            <Package size={18} className="text-slate-400" />
+                            <Package size={18} className="text-text-subtle" />
                           </div>
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-slate-900 dark:text-slate-100">{product.title}</p>
+                        <p className="truncate font-semibold text-foreground">{product.title}</p>
                         <div className="mt-1 flex flex-wrap gap-1.5">
                           {product.category && <Badge variant="slate">{product.category}</Badge>}
                           {product.type && <StatusBadge status={product.type} />}
                           {product.condition && <StatusBadge status={product.condition} />}
                         </div>
                         {product.seller && (
-                          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">by {product.seller}</p>
+                          <p className="mt-1 text-xs text-text-subtle">by {product.seller}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-brand-600 dark:text-brand-400">
+                        <span className="font-bold text-primary">
                           Rs. {Number(product.price || 0).toLocaleString('en-IN')}
                         </span>
                         <button
@@ -939,18 +982,18 @@ export default function Admin() {
               {notes.map(note => (
                 <div key={note.id} className="card">
                   <div className="flex flex-wrap items-start gap-4">
-                    <div className="flex-shrink-0 rounded-xl bg-brand-50 p-3 dark:bg-brand-900/30">
-                      <FileText size={18} className="text-brand-600 dark:text-brand-400" />
+                    <div className="flex-shrink-0 rounded-xl bg-primary-soft p-3 text-primary">
+                      <FileText size={18} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-slate-900 dark:text-slate-100">{note.title}</p>
+                      <p className="truncate font-semibold text-foreground">{note.title}</p>
                       <div className="mt-1 flex flex-wrap gap-1.5">
                         {note.branch && <Badge variant="brand">{note.branch}</Badge>}
                         {note.subject && <Badge variant="purple">{note.subject}</Badge>}
                         {note.semester && <Badge variant="slate">Sem {note.semester}</Badge>}
                       </div>
                       {note.uploaderName && (
-                        <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">by {note.uploaderName}</p>
+                        <p className="mt-1 text-xs text-text-subtle">by {note.uploaderName}</p>
                       )}
                     </div>
                     <div className="flex gap-2">
@@ -1000,7 +1043,7 @@ export default function Admin() {
         title="Reject Verification"
       >
         <div className="space-y-4">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-muted">
             Provide a reason for rejection so the student knows how to fix it.
           </p>
           <div className="form-group">
@@ -1027,14 +1070,14 @@ export default function Admin() {
 
       <Modal open={!!idCardModal} onClose={() => setIdCardModal(null)} title="ID Card Preview" size="lg">
         {idCardModal && (
-          <div className="text-center">
+          <div className="space-y-4 text-center">
             <img
               src={idCardModal.idCardUrl}
               alt="ID Card"
-              className="mx-auto max-h-96 rounded-xl object-contain"
+              className="mx-auto max-h-[70vh] rounded-2xl object-contain shadow-sm"
             />
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-              {idCardModal.studentName} · {idCardModal.studentEmail}
+            <p className="text-sm text-muted">
+              {idCardModal.studentName} - {idCardModal.studentEmail}
             </p>
             <a
               href={idCardModal.idCardUrl}
