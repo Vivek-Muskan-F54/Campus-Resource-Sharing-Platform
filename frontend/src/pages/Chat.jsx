@@ -24,27 +24,33 @@ const normalizeSockJsUrl = rawUrl =>
 
 const wsUrl = normalizeSockJsUrl(import.meta.env.VITE_WS_URL)
 
-function MessageBubble({ message, mine }) {
-  const time = message.sentAt || message.createdAt
-  const timeLabel = time
+function formatMessageTime(time) {
+  return time
     ? new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : ''
+}
+
+function formatDateLabel(time) {
+  return time ? new Date(time).toLocaleDateString([], { month: 'short', day: 'numeric' }) : ''
+}
+
+function MessageBubble({ message, mine }) {
+  const time = message.sentAt || message.createdAt
+  const timeLabel = formatMessageTime(time)
 
   return (
-    <div className={`flex items-end gap-2 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
-      {!mine && <Avatar name={message.senderName || 'U'} size="xs" className="flex-shrink-0 mb-1" />}
-      <div className={`max-w-[75%] sm:max-w-[65%] ${mine ? 'items-end' : 'items-start'} flex flex-col gap-0.5`}>
-        {!mine && message.senderName && (
-          <span className="px-1 text-xs text-muted">{message.senderName}</span>
-        )}
+    <div className={`flex items-end gap-3 ${mine ? 'flex-row-reverse' : 'flex-row'}`}>
+      {!mine && <Avatar name={message.senderName || 'U'} size="xs" className="mb-1 flex-shrink-0" />}
+      <div className={`flex max-w-[80%] flex-col gap-1 sm:max-w-[68%] ${mine ? 'items-end' : 'items-start'}`}>
+        {!mine && message.senderName && <span className="px-1 text-xs font-medium text-muted">{message.senderName}</span>}
         <div
-          className={`rounded-3xl px-4 py-2.5 text-sm shadow-sm ${
+          className={`rounded-[24px] px-4 py-3 text-sm leading-6 shadow-sm ring-1 ${
             mine
-              ? 'rounded-tr-sm bg-primary text-white'
-              : 'rounded-tl-sm border border-border bg-surface text-foreground'
+              ? 'rounded-tr-md bg-primary text-white ring-primary/20'
+              : 'rounded-tl-md border-border bg-surface text-foreground ring-border'
           }`}
         >
-          {message.productTitle && <p className="mb-1 text-xs opacity-70">re: {message.productTitle}</p>}
+          {message.productTitle && <p className="mb-1 text-[11px] font-medium opacity-70">re: {message.productTitle}</p>}
           <p className="leading-relaxed">{message.content}</p>
         </div>
         {timeLabel && <span className="px-1 text-[10px] text-muted">{timeLabel}</span>}
@@ -85,6 +91,15 @@ export default function Chat() {
       u => u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
     )
   }, [searchQuery, visibleOnlineUsers])
+
+  const sortedUsers = useMemo(() => {
+    return [...filteredUsers].sort((a, b) => {
+      const selectedA = String(a.id) === String(selectedUserId)
+      const selectedB = String(b.id) === String(selectedUserId)
+      if (selectedA !== selectedB) return selectedA ? -1 : 1
+      return String(a.name || a.email || '').localeCompare(String(b.name || b.email || ''))
+    })
+  }, [filteredUsers, selectedUserId])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -204,19 +219,22 @@ export default function Chat() {
   }
 
   return (
-    <div className="surface flex h-[calc(100vh-10rem)] overflow-hidden animate-in">
+    <div className="surface flex h-[calc(100vh-10rem)] overflow-hidden animate-in rounded-[32px] border border-border shadow-sm">
       <aside
         className={`${
           showSidebar ? 'flex' : 'hidden md:flex'
-        } w-full flex-shrink-0 flex-col border-r border-border md:w-72 lg:w-80`}
+        } w-full flex-shrink-0 flex-col border-r border-border bg-surface md:w-80 lg:w-96`}
       >
         <div className="border-b border-border px-4 py-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2 font-semibold text-foreground">
-              <MessageCircle size={18} className="text-primary" />
-              Messages
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 font-semibold text-foreground">
+                <MessageCircle size={18} className="text-primary" />
+                Messages
+              </div>
+              <p className="text-xs text-muted">Direct conversations with campus users</p>
             </div>
-            <div className={`flex items-center gap-1.5 text-xs font-medium ${connected ? 'text-success' : 'text-muted'}`}>
+            <div className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${connected ? 'bg-success-soft text-success' : 'bg-surface-elevated text-muted'}`}>
               {connected ? <Wifi size={12} /> : <WifiOff size={12} />}
               {connected ? 'Live' : 'Offline'}
             </div>
@@ -229,7 +247,7 @@ export default function Chat() {
               placeholder="Search people..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-8 py-2 text-sm"
+              className="w-full rounded-2xl py-3 pl-9 text-sm"
             />
           </div>
         </div>
@@ -240,13 +258,20 @@ export default function Chat() {
             Online ({filteredUsers.length})
           </p>
           {filteredUsers.length === 0 ? (
-            <div className="py-10 text-center">
-              <Users size={24} className="mx-auto mb-2 text-slate-300 dark:text-slate-600" />
-              <p className="text-sm text-muted">No one online right now.</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No conversations"
+              description="People will appear here when they come online."
+            />
           ) : (
             <div className="space-y-1">
-              {filteredUsers.map(person => (
+              {sortedUsers.map(person => {
+                const isSelected = String(person.id) === String(selectedUserId)
+                const preview = person.lastMessage || person.preview || person.lastMessageText || ''
+                const unreadCount = Number(person.unreadCount || person.unreadMessages || 0)
+                const lastSeen = person.lastMessageAt || person.updatedAt || person.createdAt
+
+                return (
                 <button
                   key={person.id}
                   type="button"
@@ -255,32 +280,37 @@ export default function Chat() {
                     setSelectedUserId(String(person.id))
                   }}
                   className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-all ${
-                    String(person.id) === String(selectedUserId)
-                      ? 'bg-primary-soft'
+                    isSelected
+                      ? 'bg-primary-soft ring-1 ring-primary/10'
                       : 'hover:bg-surface-elevated'
                   }`}
                 >
                   <div className="relative">
                     <Avatar name={person.name || person.email} size="sm" />
-                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                    <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-surface" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p
-                      className={`truncate text-sm font-semibold ${
-                        String(person.id) === String(selectedUserId)
-                          ? 'text-brand-700 dark:text-brand-300'
-                          : 'text-foreground'
-                      }`}
-                    >
-                      {person.name}
-                    </p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`truncate text-sm font-semibold ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                        {person.name}
+                      </p>
+                      {!!unreadCount && (
+                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </div>
                     <p className="truncate text-xs text-muted">{person.email}</p>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-muted">
+                      <span className="truncate">{preview || 'Online now'}</span>
+                      {lastSeen && <span>-</span>}
+                      {lastSeen && <span>{formatDateLabel(lastSeen)}</span>}
+                    </div>
                   </div>
-                  {String(person.id) === String(selectedUserId) && (
-                    <ChevronRight size={14} className="flex-shrink-0 text-brand-500" />
-                  )}
+                  {isSelected && <ChevronRight size={14} className="flex-shrink-0 text-primary" />}
                 </button>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -288,7 +318,7 @@ export default function Chat() {
         <div className="border-t border-border px-4 py-3">
           <p className="mb-2 text-xs font-medium text-muted">Chat by User ID</p>
           <input
-            className="w-full text-sm py-2"
+            className="w-full rounded-2xl py-2.5 text-sm"
             value={selectedUserId}
             onChange={e => {
               setError('')
@@ -300,7 +330,7 @@ export default function Chat() {
       </aside>
 
       <div className={`${showSidebar ? 'hidden md:flex' : 'flex'} flex-1 flex-col overflow-hidden`}>
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3.5">
+        <div className="flex items-center gap-3 border-b border-border bg-surface px-4 py-3.5">
           <button
             type="button"
             onClick={() => setShowSidebar(true)}
@@ -313,13 +343,13 @@ export default function Chat() {
             <>
               <div className="relative">
                 <Avatar name={selectedUser.name} size="sm" />
-                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+                <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success ring-2 ring-surface" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-foreground">
                   {selectedUser.name}
                 </h3>
-                <p className="text-xs text-emerald-500">Online</p>
+                <p className="text-xs text-success">Online</p>
               </div>
             </>
           ) : selectedUserId ? (
@@ -339,7 +369,7 @@ export default function Chat() {
           )}
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4">
+        <div className="flex-1 space-y-3 overflow-y-auto bg-[linear-gradient(180deg,rgb(var(--color-surface))_0%,rgb(var(--color-surface-elevated))_100%)] px-4 py-4">
           {!selectedUserId ? (
             <EmptyState
               icon={MessageCircle}
@@ -364,15 +394,15 @@ export default function Chat() {
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-t border-border bg-surface px-4 py-3">
           {error && (
-            <div className="mb-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
+            <div className="mb-3 rounded-2xl border border-danger/20 bg-danger-soft px-3 py-2 text-sm text-danger">
               {error}
             </div>
           )}
           <div className="flex items-end gap-2">
             <textarea
-              className="min-h-[42px] max-h-24 flex-1 resize-none py-2.5 text-sm rounded-2xl"
+              className="min-h-[48px] max-h-32 flex-1 resize-none rounded-2xl py-3 text-sm shadow-sm"
               value={draft}
               onChange={e => {
                 setError('')
@@ -390,7 +420,7 @@ export default function Chat() {
             />
             <button
               type="button"
-              className="btn h-[42px] w-[42px] flex-shrink-0 p-0"
+              className="btn h-[48px] w-[48px] flex-shrink-0 rounded-2xl p-0 shadow-sm"
               onClick={send}
               disabled={!selectedUserId || !draft.trim()}
               title="Send (Enter)"
@@ -399,7 +429,7 @@ export default function Chat() {
             </button>
           </div>
           <p className="mt-1.5 px-1 text-[10px] text-muted">
-            Press Enter to send · Shift+Enter for new line
+            Press Enter to send • Shift+Enter for new line
           </p>
         </div>
       </div>
