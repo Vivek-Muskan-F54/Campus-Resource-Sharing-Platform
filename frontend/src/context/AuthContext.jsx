@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { authApi } from '../api/services'
 import { authClient } from '../api/client'
+import { activityTracker } from '../utils/activityTracker'
 
 const AuthContext = createContext(null)
 
@@ -86,6 +87,12 @@ export function AuthProvider({ children }) {
     // Use authClient (no interceptors) to avoid any retry loops on login
     const res = await authClient.post('/auth/login', form)
     apply(res.data)
+    void activityTracker.login({
+      userId: res.data?.userId,
+      email: res.data?.email,
+      roles: res.data?.roles,
+      source: 'frontend',
+    })
     return res.data
   }, [apply])
 

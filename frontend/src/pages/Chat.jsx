@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { chatApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
+import { activityTracker } from '../utils/activityTracker'
 import Avatar from '../components/ui/Avatar'
 import EmptyState from '../components/ui/EmptyState'
 
@@ -214,6 +215,9 @@ export default function Chat() {
         recipientId,
         content: draft.trim(),
       }),
+    })
+    void activityTracker.chatSent(recipientId, {
+      preview: draft.trim().slice(0, 120),
     })
     setDraft('')
   }

@@ -18,6 +18,7 @@ import {
   ZoomIn,
 } from 'lucide-react'
 import { listingApi, orderApi } from '../api/services'
+import { activityTracker } from '../utils/activityTracker'
 import { StatusBadge } from './ui/Badge'
 
 const TYPE_CONFIG = {
@@ -192,6 +193,15 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
   useEffect(() => {
     setActiveItem(item)
   }, [item])
+
+  useEffect(() => {
+    if (!activeItem?.id) return
+    void activityTracker.productViewed(activeItem.id, {
+      title: activeItem.title,
+      category: activeItem.category,
+      type: activeItem.type,
+    })
+  }, [activeItem])
 
   useEffect(() => {
     let cancelled = false
@@ -515,7 +525,14 @@ export default function ListingCard({
 
   const handleWishlist = e => {
     e.stopPropagation()
-    if (canToggleWishlist) onToggleWishlist(item)
+    if (canToggleWishlist) {
+      void activityTracker.productWishlisted(item.id, {
+        title: item.title,
+        category: item.category,
+        action: isWishlisted ? 'removed' : 'added',
+      })
+      onToggleWishlist(item)
+    }
   }
 
   const handleSaved = e => {

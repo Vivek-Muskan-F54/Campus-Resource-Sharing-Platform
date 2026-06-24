@@ -96,3 +96,9 @@ export const reviewApi = {
   forUser: id => api.get(`/reviews/user/${id}`),
   create: d => api.post('/reviews', d),
 }
+
+export const activityApi = {
+  record: d => api.post('/activity', d),
+  me: params => api.get('/activity/me', { params }),
+  admin: params => api.get('/activity/admin', { params }),
+}

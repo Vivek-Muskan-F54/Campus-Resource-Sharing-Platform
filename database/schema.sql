@@ -295,6 +295,32 @@ CREATE TABLE notifications (
         )
 ) ENGINE = InnoDB;
 
+CREATE TABLE user_activity (
+    activity_id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id BIGINT UNSIGNED NOT NULL,
+    activity_type ENUM(
+        'LOGIN',
+        'VIEW_NOTE',
+        'DOWNLOAD_NOTE',
+        'BOOKMARK_NOTE',
+        'RATE_NOTE',
+        'UPLOAD_NOTE',
+        'VIEW_PRODUCT',
+        'WISHLIST_PRODUCT',
+        'ORDER_PRODUCT',
+        'SEARCH',
+        'CHAT_SENT'
+    ) NOT NULL,
+    entity_type ENUM('NOTE', 'PRODUCT', 'USER', 'CHAT', 'SYSTEM') NOT NULL,
+    entity_id BIGINT UNSIGNED NULL,
+    metadata TEXT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (activity_id),
+    CONSTRAINT fk_user_activity_user
+        FOREIGN KEY (user_id) REFERENCES users (user_id)
+        ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE = InnoDB;
+
 -- Search, filtering, ownership, and timeline indexes.
 CREATE INDEX idx_user_roles_role ON user_roles (role_id, user_id);
 CREATE INDEX idx_refresh_tokens_user ON refresh_tokens (user_id, is_revoked);
@@ -313,6 +339,9 @@ CREATE INDEX idx_messages_conversation_sent ON messages (sender_id, recipient_id
 CREATE INDEX idx_messages_recipient_read ON messages (recipient_id, is_read, sent_at);
 CREATE INDEX idx_reviews_reviewee_created ON reviews (reviewee_id, created_at);
 CREATE INDEX idx_notifications_recipient_read ON notifications (recipient_id, is_read, created_at);
+CREATE INDEX idx_user_activity_user_created ON user_activity (user_id, created_at);
+CREATE INDEX idx_user_activity_type_created ON user_activity (activity_type, created_at);
+CREATE INDEX idx_user_activity_entity ON user_activity (entity_type, entity_id);
 
 INSERT INTO roles (role_name, description)
 VALUES

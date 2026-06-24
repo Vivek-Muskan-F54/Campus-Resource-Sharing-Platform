@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   ArrowRight,
@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { noteApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
+import { activityTracker } from '../utils/activityTracker'
 import { useDebounce } from '../hooks/useDebounce'
 import { SkeletonCard } from '../components/ui/SkeletonCard'
 import EmptyState from '../components/ui/EmptyState'
@@ -516,6 +517,8 @@ export default function Notes() {
   const [downloadingNoteId, setDownloadingNoteId] = useState(null)
   const [savedNotes, setSavedNotes] = useState([])
   const [savedLoading, setSavedLoading] = useState(true)
+  const lastSearchSignatureRef = useRef('')
+  const lastViewedNoteIdRef = useRef(null)
 
   const [filters, setFilters] = useState({
     q: '',
@@ -572,6 +575,24 @@ export default function Notes() {
         setNotes(content)
         setTotalPages(data.totalPages ?? 0)
         setTotalElements(data.totalElements ?? content.length)
+
+        const searchSignature = [q, filters.branch || '', filters.subject || '', filters.semester || ''].join('|')
+        if (searchSignature !== '|||') {
+          if (searchSignature !== lastSearchSignatureRef.current) {
+            lastSearchSignatureRef.current = searchSignature
+            void activityTracker.search({
+              scope: 'notes',
+              query: q || undefined,
+              branch: filters.branch || undefined,
+              subject: filters.subject || undefined,
+              semester: filters.semester ? Number(filters.semester) : undefined,
+              page,
+              sort: sortBy,
+            })
+          }
+        } else {
+          lastSearchSignatureRef.current = ''
+        }
       } catch (err) {
         setNotes([])
         setTotalPages(0)
@@ -614,6 +635,22 @@ export default function Notes() {
     loadSavedNotes()
   }, [bookmarked])
 
+  useEffect(() => {
+    if (!previewNote || previewNote.id === lastViewedNoteIdRef.current) {
+      if (!previewNote) {
+        lastViewedNoteIdRef.current = null
+      }
+      return
+    }
+
+    lastViewedNoteIdRef.current = previewNote.id
+    void activityTracker.noteViewed(previewNote.id, {
+      title: previewNote.title,
+      branch: previewNote.branch,
+      subject: previewNote.subject,
+    })
+  }, [previewNote])
+
   const activeCount = filterCount(filters)
   const bookmarkedCount = bookmarked.size
 
@@ -632,9 +669,13 @@ export default function Notes() {
     setBookmarked(current => {
       const next = new Set(current)
       const key = String(id)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
+      const added = !next.has(key)
+      if (added) next.add(key)
+      else next.delete(key)
       writeSet(NOTE_BOOKMARK_KEY, next)
+      void activityTracker.noteBookmarked(id, {
+        action: added ? 'added' : 'removed',
+      })
       return next
     })
   }
@@ -643,6 +684,7 @@ export default function Notes() {
     setRatings(current => {
       const next = { ...current, [noteId]: rating }
       writeRatings(next)
+      void activityTracker.noteRated(noteId, { rating })
       return next
     })
   }
@@ -671,6 +713,11 @@ export default function Notes() {
   const handleDownload = async note => {
     setDownloadingNoteId(note.id)
     try {
+      void activityTracker.noteDownloaded(note.id, {
+        title: note.title,
+        branch: note.branch,
+        subject: note.subject,
+      })
       window.open(noteApi.downloadUrl(note.id), '_blank', 'noopener,noreferrer')
       setNotes(current =>
         current.map(item =>
@@ -697,7 +744,13 @@ export default function Notes() {
       form.append('semester', uploadForm.semester)
       form.append('subject', uploadForm.subject)
       form.append('file', file)
-      await noteApi.upload(form)
+      const response = await noteApi.upload(form)
+      void activityTracker.noteUploaded(response.data?.id, {
+        title: uploadForm.title,
+        branch: uploadForm.branch,
+        subject: uploadForm.subject,
+        semester: uploadForm.semester,
+      })
       setUploadMsg({
         type: 'success',
         text: 'Your note was submitted for review and will appear once approved.',

@@ -9,6 +9,7 @@ import com.campusshare.repository.*;
 import com.campusshare.service.OrderService;
 import com.campusshare.service.QrGenerationService;
 import com.campusshare.service.QrVerificationService;
+import com.campusshare.service.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationRepository notifications;
     private final QrGenerationService qrGenerationService;
     private final QrVerificationService qrVerificationService;
+    private final UserActivityService activityService;
 
     @Override
     public OrderResponse request(String email, Long productId) {
@@ -57,6 +59,12 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("event=order_created order_id={} product_id={} buyer_id={} seller_id={}",
                 saved.getId(), productId, buyer.getId(), product.getSeller().getId());
+        try {
+            activityService.recordOrderCreated(buyer, productId, saved.getId());
+        } catch (Exception exception) {
+            log.warn("event=user_activity_tracking_failed activity=ORDER_PRODUCT order_id={} reason={}",
+                    saved.getId(), exception.getClass().getSimpleName());
+        }
         return toResponse(saved);
     }
 
