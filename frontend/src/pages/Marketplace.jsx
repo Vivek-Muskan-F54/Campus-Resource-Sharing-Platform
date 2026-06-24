@@ -91,13 +91,13 @@ function formatCount(value) {
 
 function HeroStat({ label, value, icon: Icon }) {
   return (
-    <div className="hero-metric">
+    <div className="hero-metric border-white/10 bg-white/10 shadow-none">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-muted">{label}</p>
-          <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-xs uppercase tracking-[0.18em] text-white/70">{label}</p>
+          <p className="mt-2 text-2xl font-bold text-white">{value}</p>
         </div>
-        <div className="rounded-2xl bg-primary-soft p-2.5 text-primary">
+        <div className="rounded-2xl bg-white/10 p-2.5 text-white ring-1 ring-white/15">
           <Icon size={18} />
         </div>
       </div>
@@ -140,7 +140,7 @@ function TestimonialCard({ name, role, quote, rating }) {
           <p className="text-sm text-muted">{role}</p>
         </div>
       </div>
-      <div className="mt-4 flex items-center gap-1 text-amber-500">
+      <div className="mt-4 flex items-center gap-1 text-warning">
         {Array.from({ length: 5 }).map((_, index) => (
           <Star
             key={index}
@@ -150,7 +150,7 @@ function TestimonialCard({ name, role, quote, rating }) {
           />
         ))}
       </div>
-      <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">“{quote}”</p>
+      <p className="mt-4 text-sm leading-6 text-muted">"{quote}"</p>
     </div>
   )
 }
@@ -367,32 +367,32 @@ export default function Marketplace() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="card">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Listings</p>
-              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Listings</p>
+              <p className="mt-3 text-3xl font-bold text-foreground">
                 {formatCount(heroStats.listings)}
               </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Active marketplace opportunities</p>
+              <p className="mt-1 text-sm text-muted">Active marketplace opportunities</p>
             </div>
             <div className="card">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Notes</p>
-              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Notes</p>
+              <p className="mt-3 text-3xl font-bold text-foreground">
                 {formatCount(heroStats.notes)}
               </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Public study PDFs ready to preview</p>
+              <p className="mt-1 text-sm text-muted">Public study PDFs ready to preview</p>
             </div>
             <div className="card">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Categories</p>
-              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Categories</p>
+              <p className="mt-3 text-3xl font-bold text-foreground">
                 {formatCount(heroStats.categories)}
               </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Browse across campus needs</p>
+              <p className="mt-1 text-sm text-muted">Browse across campus needs</p>
             </div>
             <div className="card">
-              <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Highlights</p>
-              <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted">Highlights</p>
+              <p className="mt-3 text-3xl font-bold text-foreground">
                 {formatCount(heroStats.highlights)}
               </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Featured items on the landing page</p>
+              <p className="mt-1 text-sm text-muted">Featured items on the landing page</p>
             </div>
           </div>
         )}
@@ -475,7 +475,7 @@ export default function Marketplace() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-brand-600 via-brand-700 to-emerald-600 px-6 py-10 text-white shadow-2xl shadow-brand-700/20 sm:px-8 lg:px-10">
+      <section className="relative overflow-hidden rounded-[32px] border border-border bg-surface px-6 py-10 shadow-xl sm:px-8 lg:px-10">
         <div className="absolute inset-0 opacity-60">
           <div className="absolute -left-8 top-0 h-52 w-52 rounded-full bg-white/15 blur-3xl" />
           <div className="absolute right-0 bottom-0 h-64 w-64 rounded-full bg-emerald-300/15 blur-3xl" />
@@ -491,7 +491,7 @@ export default function Marketplace() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link to={user ? '/create' : '/register'} className="btn h-12 gap-2 rounded-2xl bg-white text-brand-700 hover:bg-white/95">
+            <Link to={user ? '/create' : '/register'} className="btn h-12 gap-2 rounded-2xl bg-white text-primary hover:bg-white/95">
               {user ? 'Create a listing' : 'Get started'}
               <ArrowRight size={16} />
             </Link>
@@ -502,25 +502,25 @@ export default function Marketplace() {
         </div>
       </section>
 
-      <footer className="rounded-[28px] border border-slate-200 bg-white px-6 py-8 dark:border-slate-800 dark:bg-slate-900 sm:px-8">
+      <footer className="rounded-[28px] border border-border bg-surface px-6 py-8 shadow-sm sm:px-8">
         <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr_0.7fr_0.7fr]">
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary">
                 <Heart size={18} className="text-white" />
               </div>
               <div>
-                <p className="text-lg font-bold text-slate-900 dark:text-white">CampusShare</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Shared campus resources, beautifully organized.</p>
+                <p className="text-lg font-bold text-foreground">CampusShare</p>
+                <p className="text-xs text-muted">Shared campus resources, beautifully organized.</p>
               </div>
             </div>
-            <p className="max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+            <p className="max-w-md text-sm leading-6 text-muted">
               A premium student marketplace for listings, notes, verification, orders, and conversations.
             </p>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Explore</p>
+            <p className="text-sm font-semibold text-foreground">Explore</p>
             <div className="mt-3 flex flex-col gap-2">
               {quickLinks.map(link => (
                 <FooterLink key={link.to} to={link.to}>
@@ -531,7 +531,7 @@ export default function Marketplace() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Account</p>
+            <p className="text-sm font-semibold text-foreground">Account</p>
             <div className="mt-3 flex flex-col gap-2">
               <FooterLink to="/login">Sign in</FooterLink>
               <FooterLink to="/register">Create account</FooterLink>
@@ -540,14 +540,14 @@ export default function Marketplace() {
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-white">Quick note</p>
-            <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
+            <p className="text-sm font-semibold text-foreground">Quick note</p>
+            <p className="mt-3 text-sm leading-6 text-muted">
               Built to load quickly, scale cleanly, and keep the brand consistent across the platform.
             </p>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-4 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col gap-3 border-t border-border pt-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} CampusShare. All rights reserved.</p>
           <p>Designed for a fast, mobile-friendly campus resource exchange.</p>
         </div>

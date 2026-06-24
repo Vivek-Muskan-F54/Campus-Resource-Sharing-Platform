@@ -21,9 +21,9 @@ import { listingApi, orderApi } from '../api/services'
 import { StatusBadge } from './ui/Badge'
 
 const TYPE_CONFIG = {
-  SELL: { icon: Tag, label: 'For Sale', color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-900/30' },
-  RENT: { icon: Clock, label: 'For Rent', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-900/30' },
-  EXCHANGE: { icon: Repeat, label: 'Exchange', color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-900/30' },
+  SELL: { icon: Tag, label: 'For Sale', color: 'text-success', bg: 'bg-success-soft' },
+  RENT: { icon: Clock, label: 'For Rent', color: 'text-info', bg: 'bg-info-soft' },
+  EXCHANGE: { icon: Repeat, label: 'Exchange', color: 'text-primary', bg: 'bg-primary-soft' },
 }
 
 function formatPrice(value) {
@@ -44,8 +44,8 @@ function initials(value) {
 function Toast({ type, message, onDismiss }) {
   return (
     <div
-      className={`fixed bottom-24 xl:bottom-6 right-4 z-[60] flex max-w-xs items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-2xl animate-slide-up ${
-        type === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'
+      className={`fixed bottom-24 right-4 z-[60] flex max-w-xs items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium shadow-2xl animate-slide-up xl:bottom-6 ${
+        type === 'success' ? 'bg-success text-white' : 'bg-danger text-white'
       }`}
     >
       {type === 'success' ? (
@@ -83,15 +83,15 @@ function ImageGallery({ images, title, compact = false }) {
   const height = compact ? 'h-48' : 'h-72 sm:h-80'
 
   return (
-    <div className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800 ${height} rounded-t-2xl`}>
+    <div className={`relative overflow-hidden bg-surface-elevated ${height} rounded-t-3xl`}>
       {current ? (
         <img src={current} alt={title} className="h-full w-full object-cover" loading="lazy" />
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-2">
-          <div className="rounded-2xl bg-slate-200 p-5 dark:bg-slate-700">
-            <ShoppingCart size={28} className="text-slate-400 dark:text-slate-500" />
+          <div className="rounded-2xl bg-surface p-5 text-muted shadow-sm">
+            <ShoppingCart size={28} />
           </div>
-          <span className="text-xs text-slate-400 dark:text-slate-500">No image</span>
+          <span className="text-xs text-muted">No image</span>
         </div>
       )}
 
@@ -99,14 +99,14 @@ function ImageGallery({ images, title, compact = false }) {
         <>
           <button
             onClick={prev}
-            className="absolute left-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-black/60"
+            className="absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-surface/85 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-surface"
             aria-label="Previous image"
           >
             <ChevronLeft size={14} />
           </button>
           <button
             onClick={next}
-            className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-black/60"
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-surface/85 text-foreground shadow-sm backdrop-blur transition-colors hover:bg-surface"
             aria-label="Next image"
           >
             <ChevronRight size={14} />
@@ -120,7 +120,7 @@ function ImageGallery({ images, title, compact = false }) {
                   setIndex(i)
                 }}
                 className={`rounded-full transition-all ${
-                  i === index ? 'h-1.5 w-4 bg-white' : 'h-1.5 w-1.5 bg-white/50'
+                  i === index ? 'h-1.5 w-4 bg-surface' : 'h-1.5 w-1.5 bg-surface/60'
                 }`}
                 aria-label={`Image ${i + 1}`}
               />
@@ -141,9 +141,9 @@ function RelatedCard({ item, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900"
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-surface text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lg"
     >
-      <div className="relative h-28 overflow-hidden bg-slate-100 dark:bg-slate-800">
+      <div className="relative h-28 overflow-hidden bg-surface-elevated">
         {image ? (
           <img
             src={image}
@@ -153,7 +153,7 @@ function RelatedCard({ item, onClick }) {
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <ShoppingCart size={22} className="text-slate-400 dark:text-slate-500" />
+            <ShoppingCart size={22} className="text-muted" />
           </div>
         )}
         <div className="absolute left-2 top-2">
@@ -164,13 +164,13 @@ function RelatedCard({ item, onClick }) {
         </div>
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-slate-900 dark:text-slate-100">
+        <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
           {item.title}
         </h4>
-        <div className="text-sm font-bold text-brand-600 dark:text-brand-400">
+        <div className="text-sm font-bold text-primary">
           Rs. {formatPrice(item.price)}
         </div>
-        <div className="mt-auto flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted">
           <span className="truncate">{item.category || 'Marketplace'}</span>
           <ArrowRight size={12} className="flex-shrink-0" />
         </div>
@@ -256,12 +256,12 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
-        className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-3xl border border-slate-200 bg-white shadow-2xl animate-slide-up dark:border-slate-800 dark:bg-slate-900 sm:max-w-3xl sm:rounded-2xl"
+        className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-[32px] border border-border bg-surface shadow-2xl animate-slide-up sm:max-w-3xl sm:rounded-[28px]"
         onClick={e => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-slate-500 shadow-sm backdrop-blur-sm transition-colors hover:bg-white dark:bg-slate-800/80 dark:text-slate-400 dark:hover:bg-slate-700"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-surface/85 text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-surface"
         >
           <X size={16} />
         </button>
@@ -271,19 +271,19 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
         <div className="space-y-5 p-5 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Marketplace item
               </p>
-              <h2 className="mt-1 text-xl font-bold leading-snug text-slate-900 dark:text-white">
+              <h2 className="mt-1 text-2xl font-bold leading-snug text-foreground">
                 {activeItem.title}
               </h2>
             </div>
             <div className="flex-shrink-0 text-right">
-              <div className="text-2xl font-bold text-brand-600 dark:text-brand-400">
+              <div className="text-2xl font-bold text-primary">
                 Rs. {formatPrice(activeItem.price)}
               </div>
               {activeItem.type === 'RENT' && (
-                <div className="text-xs text-slate-400 dark:text-slate-500">per period</div>
+                <div className="text-xs text-muted">per period</div>
               )}
             </div>
           </div>
@@ -296,7 +296,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
             {activeItem.status && <StatusBadge status={activeItem.status} />}
             {activeItem.condition && <StatusBadge status={activeItem.condition} />}
             {activeItem.category && (
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+              <span className="inline-flex items-center rounded-full bg-surface-elevated px-3 py-1 text-xs font-medium text-muted">
                 {activeItem.category}
               </span>
             )}
@@ -305,45 +305,45 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
           <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="space-y-4">
               {activeItem.description && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-800/30">
-                  <h3 className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+                  <h3 className="mb-2 text-sm font-semibold text-foreground">
                     Description
                   </h3>
-                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  <p className="whitespace-pre-line text-sm leading-relaxed text-muted">
                     {activeItem.description}
                   </p>
                 </div>
               )}
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
                       Seller profile
                     </p>
-                    <h3 className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
+                    <h3 className="mt-1 text-base font-semibold text-foreground">
                       {activeItem.seller || 'Campus seller'}
                     </h3>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-600 text-sm font-bold text-white shadow-sm">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-sm font-bold text-white shadow-sm">
                     {sellerInitials}
                   </div>
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
-                    <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-surface-elevated p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-muted">
                       Seller ID
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <p className="mt-1 text-sm font-semibold text-foreground">
                       #{activeItem.sellerId ?? 'N/A'}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
-                    <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-surface-elevated p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-muted">
                       Listed on
                     </p>
-                    <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <p className="mt-1 text-sm font-semibold text-foreground">
                       {activeItem.createdAt
                         ? new Date(activeItem.createdAt).toLocaleDateString('en-IN', {
                             day: 'numeric',
@@ -353,8 +353,8 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
                         : 'Recently'}
                     </p>
                   </div>
-                  <div className="rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
-                    <p className="text-[11px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                  <div className="rounded-xl bg-surface-elevated p-3">
+                    <p className="text-[11px] uppercase tracking-wide text-muted">
                       Listing status
                     </p>
                     <div className="mt-1">
@@ -364,7 +364,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
                 </div>
 
                 {activeItem.sellerRating > 0 && (
-                  <div className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-amber-500">
+                  <div className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-warning">
                     <Star size={14} fill="currentColor" />
                     {activeItem.sellerRating.toFixed(1)} seller rating
                   </div>
@@ -373,15 +373,15 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-800/30">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Quick facts</h3>
-                <div className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-400">
+              <div className="rounded-2xl border border-border bg-surface-elevated p-4">
+                <h3 className="text-sm font-semibold text-foreground">Quick facts</h3>
+                <div className="mt-3 space-y-2 text-sm text-muted">
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-2">
                       <User size={14} />
                       Seller
                     </span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                    <span className="font-medium text-foreground">
                       {activeItem.seller || 'Campus seller'}
                     </span>
                   </div>
@@ -390,7 +390,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
                       <Tag size={14} />
                       Category
                     </span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                    <span className="font-medium text-foreground">
                       {activeItem.category || 'Marketplace'}
                     </span>
                   </div>
@@ -399,15 +399,15 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
                       <Clock size={14} />
                       Type
                     </span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                    <span className="font-medium text-foreground">
                       {typeConf.label}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <div className="rounded-2xl border border-border bg-surface p-4">
+                <h3 className="text-sm font-semibold text-foreground">
                   Similar products
                 </h3>
                 <div className="mt-3">
@@ -416,7 +416,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
                       {Array.from({ length: 4 }).map((_, index) => (
                         <div
                           key={index}
-                          className="h-44 animate-pulse rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/30"
+                          className="h-44 animate-pulse rounded-2xl border border-border bg-surface-elevated"
                         />
                       ))}
                     </div>
@@ -427,7 +427,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                    <div className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-sm text-muted">
                       Similar products will appear here when more listings match this item.
                     </div>
                   )}
@@ -536,7 +536,7 @@ export default function ListingCard({
         aria-label={`View details for ${item.title}`}
       >
         <div
-          className={`relative flex-shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-800 ${
+          className={`relative flex-shrink-0 overflow-hidden bg-surface-elevated ${
             listMode ? 'h-24 w-24 sm:h-28 sm:w-28' : 'h-48'
           }`}
         >
@@ -549,7 +549,7 @@ export default function ListingCard({
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
-              <ShoppingCart size={listMode ? 18 : 28} className="text-slate-400 dark:text-slate-500" />
+              <ShoppingCart size={listMode ? 18 : 28} className="text-muted" />
             </div>
           )}
 
@@ -576,8 +576,8 @@ export default function ListingCard({
                 onClick={handleWishlist}
                 className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
                   isWishlisted
-                    ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20'
-                    : 'bg-white/90 text-slate-600 hover:bg-white dark:bg-slate-900/90 dark:text-slate-300 dark:hover:bg-slate-800'
+                    ? 'bg-danger text-white shadow-lg shadow-danger/20'
+                    : 'bg-surface/90 text-muted hover:bg-surface'
                 }`}
                 aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
                 title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -591,8 +591,8 @@ export default function ListingCard({
                 onClick={handleSaved}
                 className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-colors ${
                   isSaved
-                    ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/20'
-                    : 'bg-white/90 text-slate-600 hover:bg-white dark:bg-slate-900/90 dark:text-slate-300 dark:hover:bg-slate-800'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                    : 'bg-surface/90 text-muted hover:bg-surface'
                 }`}
                 aria-label={isSaved ? 'Remove from saved listings' : 'Save listing'}
                 title={isSaved ? 'Remove from saved listings' : 'Save listing'}
@@ -604,8 +604,8 @@ export default function ListingCard({
 
           {!listMode && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover:bg-black/10">
-              <div className="rounded-full bg-white/90 p-2 opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100 dark:bg-slate-900/90">
-                <ZoomIn size={16} className="text-slate-700 dark:text-slate-200" />
+              <div className="rounded-full bg-surface/90 p-2 opacity-0 shadow-lg transition-opacity duration-300 group-hover:opacity-100">
+                <ZoomIn size={16} className="text-foreground" />
               </div>
             </div>
           )}
@@ -614,13 +614,13 @@ export default function ListingCard({
         <div className={`flex min-w-0 flex-1 flex-col ${listMode ? 'p-3 sm:p-4' : 'p-4'}`}>
           <div className="mb-1 flex items-start justify-between gap-2">
             <h3
-              className={`flex-1 font-semibold leading-snug text-slate-900 dark:text-slate-100 ${
+              className={`flex-1 font-semibold leading-snug text-foreground ${
                 listMode ? 'text-sm' : 'line-clamp-1 text-sm'
               }`}
             >
               {item.title}
             </h3>
-            <span className="whitespace-nowrap text-sm font-bold text-brand-600 dark:text-brand-400">
+            <span className="whitespace-nowrap text-sm font-bold text-primary">
               Rs. {formatPrice(item.price)}
             </span>
           </div>
@@ -631,17 +631,17 @@ export default function ListingCard({
           </div>
 
           {item.category && (
-            <p className="mb-1.5 text-xs text-slate-500 dark:text-slate-400">{item.category}</p>
+            <p className="mb-1.5 text-xs text-muted">{item.category}</p>
           )}
 
           {!listMode && item.description && (
-            <p className="mb-2.5 line-clamp-2 flex-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mb-2.5 line-clamp-2 flex-1 text-xs text-muted">
               {item.description}
             </p>
           )}
 
           {item.seller && (
-            <p className="mb-2 flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500">
+            <p className="mb-2 flex items-center gap-1 text-xs text-text-subtle">
               <User size={11} />
               {item.seller}
             </p>
@@ -666,13 +666,13 @@ export default function ListingCard({
                   </span>
                 )}
               </button>
-            ) : (
-              !listMode && (
-                <span className="flex-1 py-2 text-center text-xs italic text-slate-400 dark:text-slate-500">
-                  Sign in to request
-                </span>
-              )
-            )}
+              ) : (
+                !listMode && (
+                  <span className="flex-1 py-2 text-center text-xs italic text-muted">
+                    Sign in to request
+                  </span>
+                )
+              )}
 
             <button
               type="button"
@@ -680,7 +680,7 @@ export default function ListingCard({
                 e.stopPropagation()
                 setModalOpen(true)
               }}
-              className="flex items-center gap-1 rounded-xl border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:border-brand-300 hover:text-brand-600 dark:border-slate-700 dark:text-slate-300 dark:hover:border-brand-700 dark:hover:text-brand-400"
+              className="flex items-center gap-1 rounded-xl border border-border px-3 py-2 text-xs font-medium text-muted transition-colors hover:border-border-strong hover:text-foreground"
             >
               Details
               <ArrowRight size={12} />
