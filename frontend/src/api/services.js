@@ -102,3 +102,8 @@ export const activityApi = {
   me: params => api.get('/activity/me', { params }),
   admin: params => api.get('/activity/admin', { params }),
 }
+
+export const recommendationApi = {
+  notes: params => api.get('/recommendations/notes', { params }),
+  products: params => api.get('/recommendations/products', { params }),
+}

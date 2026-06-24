@@ -57,12 +57,12 @@ class NoteServiceImplTest {
         StorageUploadResult uploadResult = new StorageUploadResult(
                 "https://cdn.example.com/notes/dbms.pdf",
                 "notes/dbms",
-                "auto",
+                "raw",
                 2048L,
                 "pdf");
 
         when(users.findByEmail(EMAIL)).thenReturn(Optional.of(uploader));
-        when(storage.upload(eq(file), eq("campus-share/notes"), eq("auto"))).thenReturn(uploadResult);
+        when(storage.upload(eq(file), eq("campus-share/notes"), eq("raw"))).thenReturn(uploadResult);
         when(notes.save(any(Note.class))).thenAnswer(invocation -> {
             Note note = invocation.getArgument(0);
             note.setId(501L);
@@ -72,7 +72,7 @@ class NoteServiceImplTest {
         var response = noteService.uploadPdf(EMAIL, request, file);
 
         ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
-        verify(storage).upload(eq(file), eq("campus-share/notes"), eq("auto"));
+        verify(storage).upload(eq(file), eq("campus-share/notes"), eq("raw"));
         verify(notes).save(noteCaptor.capture());
 
         Note saved = noteCaptor.getValue();

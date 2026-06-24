@@ -14,7 +14,7 @@ import {
   Star,
   Zap,
 } from 'lucide-react'
-import { categoryApi, listingApi, noteApi } from '../api/services'
+import { categoryApi, listingApi, noteApi, recommendationApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
 import ListingCard from '../components/ListingCard'
 import { SkeletonCard } from '../components/ui/SkeletonCard'
@@ -195,6 +195,8 @@ export default function Marketplace() {
   })
   const [featuredListings, setFeaturedListings] = useState([])
   const [featuredNotes, setFeaturedNotes] = useState([])
+  const [recommendedProducts, setRecommendedProducts] = useState([])
+  const [recommendedLoading, setRecommendedLoading] = useState(false)
   const [faqOpen, setFaqOpen] = useState(0)
 
   useEffect(() => {
@@ -240,6 +242,38 @@ export default function Marketplace() {
       cancelled = true
     }
   }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadRecommendations = async () => {
+      if (!user) {
+        setRecommendedProducts([])
+        setRecommendedLoading(false)
+        return
+      }
+
+      setRecommendedLoading(true)
+      try {
+        const response = await recommendationApi.products({ page: 0, size: 6, sort: 'createdAt,desc' })
+        if (cancelled) return
+        setRecommendedProducts(response.data?.content || [])
+      } catch {
+        if (!cancelled) {
+          setRecommendedProducts([])
+        }
+      } finally {
+        if (!cancelled) {
+          setRecommendedLoading(false)
+        }
+      }
+    }
+
+    loadRecommendations()
+    return () => {
+      cancelled = true
+    }
+  }, [user])
 
   const quickLinks = useMemo(
     () => [
@@ -346,6 +380,49 @@ export default function Marketplace() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="space-y-6">
+        <SectionHeading
+          eyebrow="Personalized picks"
+          title="You May Like"
+          description="Marketplace items ranked from the categories you engage with most."
+        />
+        {user ? (
+          recommendedLoading ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          ) : recommendedProducts.length ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {recommendedProducts.map(item => {
+                const product = item.product || item
+                return (
+                  <div key={product.id} className="relative">
+                    <div className="absolute right-3 top-3 z-10 rounded-full bg-surface/90 px-2.5 py-1 text-[10px] font-semibold text-primary shadow-sm ring-1 ring-border">
+                      Score {item.score ?? 0}
+                    </div>
+                    <ListingCard key={product.id} item={product} user={user} />
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Package}
+              title="No recommendations yet"
+              description="Engage with products by viewing, wishlisting, or ordering to get personalized marketplace picks."
+            />
+          )
+        ) : (
+          <EmptyState
+            icon={Package}
+            title="Sign in for personalized picks"
+            description="Once you sign in, this section will surface marketplace items that match your browsing behavior."
+          />
+        )}
       </section>
 
       <section className="space-y-6">

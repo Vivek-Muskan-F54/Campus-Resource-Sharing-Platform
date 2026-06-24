@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query(
@@ -49,5 +51,28 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             Pageable pageable);
 
     Page<Product> findBySellerId(Long sellerId, Pageable pageable);
+
+    @Query("select p.id from Product p where p.seller.id = :sellerId")
+    List<Long> findIdsBySellerId(@Param("sellerId") Long sellerId);
+
+    @Query(
+            value = """
+                    select distinct p from Product p
+                    join fetch p.seller
+                    join fetch p.category
+                    where p.status = :status
+                      and (:useCategoryFilters = false or p.category.id in :categoryIds)
+                    """,
+            countQuery = """
+                    select count(distinct p) from Product p
+                    where p.status = :status
+                      and (:useCategoryFilters = false or p.category.id in :categoryIds)
+                    """)
+    Page<Product> findRecommendedCandidates(
+            @Param("categoryIds") Collection<Long> categoryIds,
+            @Param("useCategoryFilters") boolean useCategoryFilters,
+            @Param("status") ListingStatus status,
+            Pageable pageable);
+
     long countByStatus(ListingStatus status);
 }

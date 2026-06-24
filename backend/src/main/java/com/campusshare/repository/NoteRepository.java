@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+
 public interface NoteRepository extends JpaRepository<Note, Long> {
     @Query(
             value = """
@@ -34,6 +36,34 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
             @Param("branch") String branch,
             @Param("semester") Integer semester,
             @Param("subject") String subject,
+            @Param("status") ModerationStatus status,
+            Pageable pageable);
+
+    @Query(
+            value = """
+                    select distinct n from Note n
+                    join fetch n.uploader
+                    where n.status = :status
+                      and (
+                            (:useBranchFilters = false and :useSubjectFilters = false)
+                            or lower(n.branch) in :branches
+                            or lower(n.subject) in :subjects
+                      )
+                    """,
+            countQuery = """
+                    select count(distinct n) from Note n
+                    where n.status = :status
+                      and (
+                            (:useBranchFilters = false and :useSubjectFilters = false)
+                            or lower(n.branch) in :branches
+                            or lower(n.subject) in :subjects
+                      )
+                    """)
+    Page<Note> findRecommendedCandidates(
+            @Param("branches") Collection<String> branches,
+            @Param("subjects") Collection<String> subjects,
+            @Param("useBranchFilters") boolean useBranchFilters,
+            @Param("useSubjectFilters") boolean useSubjectFilters,
             @Param("status") ModerationStatus status,
             Pageable pageable);
 

@@ -21,7 +21,7 @@ import {
   Upload,
   X,
 } from 'lucide-react'
-import { noteApi } from '../api/services'
+import { noteApi, recommendationApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
 import { activityTracker } from '../utils/activityTracker'
 import { useDebounce } from '../hooks/useDebounce'
@@ -517,6 +517,8 @@ export default function Notes() {
   const [downloadingNoteId, setDownloadingNoteId] = useState(null)
   const [savedNotes, setSavedNotes] = useState([])
   const [savedLoading, setSavedLoading] = useState(true)
+  const [recommendedNotes, setRecommendedNotes] = useState([])
+  const [recommendedLoading, setRecommendedLoading] = useState(false)
   const lastSearchSignatureRef = useRef('')
   const lastViewedNoteIdRef = useRef(null)
 
@@ -634,6 +636,38 @@ export default function Notes() {
 
     loadSavedNotes()
   }, [bookmarked])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const loadRecommendations = async () => {
+      if (!isAuthenticated) {
+        setRecommendedNotes([])
+        setRecommendedLoading(false)
+        return
+      }
+
+      setRecommendedLoading(true)
+      try {
+        const response = await recommendationApi.notes({ page: 0, size: 6, sort: 'createdAt,desc' })
+        if (cancelled) return
+        setRecommendedNotes(response.data?.content || [])
+      } catch {
+        if (!cancelled) {
+          setRecommendedNotes([])
+        }
+      } finally {
+        if (!cancelled) {
+          setRecommendedLoading(false)
+        }
+      }
+    }
+
+    loadRecommendations()
+    return () => {
+      cancelled = true
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (!previewNote || previewNote.id === lastViewedNoteIdRef.current) {
@@ -875,6 +909,62 @@ export default function Notes() {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Recommended For You</h2>
+            <p className="text-sm text-muted">
+              Personalized notes based on what you view, download, bookmark, and rate.
+            </p>
+          </div>
+          {isAuthenticated && <Badge variant="brand">{recommendedNotes.length} picks</Badge>}
+        </div>
+
+        {isAuthenticated ? (
+          recommendedLoading ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
+            </div>
+          ) : recommendedNotes.length ? (
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {recommendedNotes.map(item => {
+                const note = item.note || item
+                return (
+                  <div key={note.id} className="relative">
+                    <div className="absolute right-3 top-3 z-10 rounded-full bg-surface/90 px-2.5 py-1 text-[10px] font-semibold text-primary shadow-sm ring-1 ring-border">
+                      Score {item.score ?? 0}
+                    </div>
+                    <NoteCard
+                      note={note}
+                      bookmarked={bookmarked.has(String(note.id))}
+                      rating={ratings[note.id] || 0}
+                      onToggleBookmark={toggleBookmark}
+                      onOpenPreview={setPreviewNote}
+                      onRate={rating => setRating(note.id, rating)}
+                      onDownload={handleDownload}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <EmptyState
+              icon={BookOpen}
+              title="No recommendations yet"
+              description="Keep browsing, bookmarking, and downloading notes so we can learn your study preferences."
+            />
+          )
+        ) : (
+          <EmptyState
+            icon={BookOpen}
+            title="Sign in for personalized notes"
+            description="Once you sign in, this section will learn from your note activity and surface relevant study material."
+          />
+        )}
       </section>
 
       <section className="space-y-4">
