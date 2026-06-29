@@ -13,6 +13,7 @@ import com.campusshare.dto.StorageUploadResult;
 import com.campusshare.repository.NoteRepository;
 import com.campusshare.repository.UserRepository;
 import com.campusshare.service.NoteService;
+import com.campusshare.service.ReputationService;
 import com.campusshare.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ public class NoteServiceImpl implements NoteService {
 
     private final NoteRepository notes;
     private final UserRepository users;
+    private final ReputationService reputationService;
     private final StorageService storage;
 
     @Override
@@ -89,6 +91,7 @@ public class NoteServiceImpl implements NoteService {
         note.setFileSize(uploaded.bytes() > 0 ? uploaded.bytes() : file.getSize());
 
         Note saved = notes.save(note);
+        reputationService.recordNoteUploaded(saved.getUploader());
         log.info("Note uploaded: id={} uploader={} filename={} size={} fileUrl={} publicId={}",
                 saved.getId(), email, safeFilename, saved.getFileSize(), saved.getFileUrl(), saved.getPublicId());
         return toResponse(saved);
@@ -107,6 +110,7 @@ public class NoteServiceImpl implements NoteService {
         note.setContentType(PDF_CONTENT_TYPE);
 
         Note saved = notes.save(note);
+        reputationService.recordNoteUploaded(saved.getUploader());
         log.info("Note metadata created: id={} uploader={}", saved.getId(), email);
         return toResponse(saved);
     }
@@ -127,10 +131,14 @@ public class NoteServiceImpl implements NoteService {
     public NoteResponse moderate(Long noteId, NoteModerationRequest request) {
         Note note = notes.findById(noteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
+        ModerationStatus previousStatus = note.getStatus();
         note.setStatus(request.status());
         note.setModeratedAt(Instant.now());
         note.setModerationRemarks(request.remarks());
         Note saved = notes.save(note);
+        if (previousStatus != ModerationStatus.APPROVED && request.status() == ModerationStatus.APPROVED) {
+            reputationService.recordNoteApproved(saved.getUploader());
+        }
         log.info("Note moderated: id={} status={}", noteId, request.status());
         return toResponse(saved);
     }

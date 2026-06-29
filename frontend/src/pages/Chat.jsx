@@ -13,17 +13,18 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { chatApi } from '../api/services'
+import { WS_BASE_URL } from '../config/environment'
 import { useAuth } from '../context/AuthContext'
 import { activityTracker } from '../utils/activityTracker'
 import Avatar from '../components/ui/Avatar'
 import EmptyState from '../components/ui/EmptyState'
 
 const normalizeSockJsUrl = rawUrl =>
-  (rawUrl || 'https://campus-resource-sharing-platform.onrender.com/ws')
+  (rawUrl || WS_BASE_URL)
     .replace(/^wss:/i, 'https:')
     .replace(/^ws:/i, 'http:')
 
-const wsUrl = normalizeSockJsUrl(import.meta.env.VITE_WS_URL)
+const wsUrl = normalizeSockJsUrl(WS_BASE_URL)
 
 function formatMessageTime(time) {
   return time

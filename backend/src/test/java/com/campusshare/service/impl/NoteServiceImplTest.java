@@ -8,6 +8,7 @@ import com.campusshare.dto.NoteDtos.NoteModerationRequest;
 import com.campusshare.dto.StorageUploadResult;
 import com.campusshare.repository.NoteRepository;
 import com.campusshare.repository.UserRepository;
+import com.campusshare.service.ReputationService;
 import com.campusshare.service.StorageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ class NoteServiceImplTest {
 
     @Mock private NoteRepository notes;
     @Mock private UserRepository users;
+    @Mock private ReputationService reputationService;
     @Mock private StorageService storage;
 
     @InjectMocks private NoteServiceImpl noteService;

@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface NoteRepository extends JpaRepository<Note, Long> {
     @Query(
@@ -66,6 +67,24 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
             @Param("useSubjectFilters") boolean useSubjectFilters,
             @Param("status") ModerationStatus status,
             Pageable pageable);
+
+    @Query("""
+            select distinct n from Note n
+            join fetch n.uploader
+            where n.id in :ids
+              and n.status = :status
+            """)
+    List<Note> findAllWithUploaderByIdInAndStatus(
+            @Param("ids") Collection<Long> ids,
+            @Param("status") ModerationStatus status);
+
+    @Query("""
+            select n.uploader.id as userId, n.uploader.name as userName, count(n) as metric
+            from Note n
+            group by n.uploader.id, n.uploader.name
+            order by count(n) desc, n.uploader.name asc
+            """)
+    List<UserLeaderboardView> findTopNoteUploaders(org.springframework.data.domain.Pageable pageable);
 
     long countByStatus(ModerationStatus status);
 }

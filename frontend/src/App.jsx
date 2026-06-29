@@ -11,6 +11,9 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Notes = lazy(() => import('./pages/Notes'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Leaderboard = lazy(() => import('./pages/Leaderboard'))
 const Orders = lazy(() => import('./pages/Orders'))
 const CreateListing = lazy(() => import('./pages/CreateListing'))
 const Chat = lazy(() => import('./pages/Chat'))
@@ -41,6 +44,15 @@ export default function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/dashboard" element={
+            <ProtectedRoute><Dashboard /></ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute><Profile /></ProtectedRoute>
+          } />
+          <Route path="/leaderboard" element={
+            <ProtectedRoute><Leaderboard /></ProtectedRoute>
+          } />
 
           <Route path="/create" element={
             <ProtectedRoute><CreateListing /></ProtectedRoute>

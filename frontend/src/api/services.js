@@ -107,3 +107,13 @@ export const recommendationApi = {
   notes: params => api.get('/recommendations/notes', { params }),
   products: params => api.get('/recommendations/products', { params }),
 }
+
+export const dashboardApi = {
+  personalized: params => api.get('/dashboard/personalized', { params }),
+}
+
+export const reputationApi = {
+  me: () => api.get('/reputation/me'),
+  getByUserId: userId => api.get(`/reputation/${userId}`),
+  leaderboard: () => api.get('/reputation/leaderboard'),
+}

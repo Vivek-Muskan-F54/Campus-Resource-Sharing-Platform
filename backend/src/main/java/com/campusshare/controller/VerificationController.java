@@ -13,6 +13,7 @@ import com.campusshare.dto.ContentDtos.VerificationResponse;
 import com.campusshare.repository.NotificationRepository;
 import com.campusshare.repository.UserRepository;
 import com.campusshare.repository.VerificationRepository;
+import com.campusshare.service.ReputationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,7 @@ public class VerificationController {
     private final VerificationRepository repo;
     private final UserRepository users;
     private final NotificationRepository notifications;
+    private final ReputationService reputationService;
 
     /**
      * Submit or re-submit an ID-card URL for verification.
@@ -116,6 +118,10 @@ public class VerificationController {
         notification.setMessage("Your ID card verification was " + newStatus.name().toLowerCase());
         notification.setLink("/verification");
         notifications.save(notification);
+
+        if (newStatus == VerificationStatus.APPROVED) {
+            reputationService.recordVerifiedAccount(verification.getStudent());
+        }
 
         return toResponse(repo.save(verification));
     }

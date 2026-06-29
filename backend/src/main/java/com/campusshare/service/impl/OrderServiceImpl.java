@@ -9,6 +9,7 @@ import com.campusshare.repository.*;
 import com.campusshare.service.OrderService;
 import com.campusshare.service.QrGenerationService;
 import com.campusshare.service.QrVerificationService;
+import com.campusshare.service.ReputationService;
 import com.campusshare.service.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationRepository notifications;
     private final QrGenerationService qrGenerationService;
     private final QrVerificationService qrVerificationService;
+    private final ReputationService reputationService;
     private final UserActivityService activityService;
 
     @Override

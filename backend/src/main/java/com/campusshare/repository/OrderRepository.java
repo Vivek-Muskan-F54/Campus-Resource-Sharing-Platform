@@ -20,4 +20,15 @@ public interface OrderRepository extends JpaRepository<MarketplaceOrder,Long> {
               and o.status = :status
             """)
     List<Long> findDistinctProductIdsByBuyerIdAndStatus(@Param("buyerId") Long buyerId, @Param("status") OrderStatus status);
+
+    @Query("""
+            select o.seller.id as userId, o.seller.name as userName, count(o) as metric
+            from MarketplaceOrder o
+            where o.status = :status
+            group by o.seller.id, o.seller.name
+            order by count(o) desc, o.seller.name asc
+            """)
+    List<UserLeaderboardView> findTopSellers(
+            @org.springframework.data.repository.query.Param("status") OrderStatus status,
+            org.springframework.data.domain.Pageable pageable);
 }

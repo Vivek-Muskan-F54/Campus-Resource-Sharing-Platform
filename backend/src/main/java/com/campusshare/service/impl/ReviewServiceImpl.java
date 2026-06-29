@@ -12,6 +12,7 @@ import com.campusshare.repository.OrderRepository;
 import com.campusshare.repository.ReviewRepository;
 import com.campusshare.repository.UserRepository;
 import com.campusshare.service.ReviewService;
+import com.campusshare.service.ReputationService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviews;
     private final OrderRepository orders;
     private final UserRepository users;
+    private final ReputationService reputationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -84,6 +86,9 @@ public class ReviewServiceImpl implements ReviewService {
         users.save(reviewee);
 
         Review saved = reviews.save(review);
+        if (request.rating() >= 4) {
+            reputationService.recordPositiveRating(reviewee);
+        }
         log.debug("Review created: order={} reviewer={}", order.getId(), reviewer.getId());
         return toResponse(saved);
     }

@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   MessageCircle,
   LayoutDashboard,
+  Trophy,
   Plus,
   Home,
   LogOut,
@@ -24,6 +25,8 @@ import Avatar from '../components/ui/Avatar'
 
 const navItems = [
   { label: 'Marketplace', path: '/', icon: Home, exact: true },
+  { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, auth: true },
+  { label: 'Leaderboard', path: '/leaderboard', icon: Trophy, auth: true },
   { label: 'Notes', path: '/notes', icon: BookOpen },
   { label: 'Orders', path: '/orders', icon: Package, auth: true },
   { label: 'Verification', path: '/verification', icon: ShieldCheck, auth: true },
@@ -122,6 +125,20 @@ export default function AppLayout() {
                         <p className="truncate text-xs text-muted">{user.email}</p>
                       </div>
                       <div className="p-1.5">
+                        <Link
+                          to="/profile"
+                          className="mb-1 flex w-full items-center gap-2.5 rounded-2xl px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface-elevated"
+                        >
+                          <User size={15} />
+                          Profile
+                        </Link>
+                        <Link
+                          to="/leaderboard"
+                          className="mb-1 flex w-full items-center gap-2.5 rounded-2xl px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-surface-elevated"
+                        >
+                          <Trophy size={15} />
+                          Leaderboard
+                        </Link>
                         <button
                           onClick={logout}
                           className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft/70"
