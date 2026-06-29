@@ -37,12 +37,13 @@ public class NoteController {
 
     @GetMapping
     public Page<NoteResponse> search(
+            Authentication authentication,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String branch,
             @RequestParam(required = false) Integer semester,
             @RequestParam(required = false) String subject,
             @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return noteService.search(q, branch, semester, subject, pageable);
+        return noteService.search(resolveViewerEmail(authentication), q, branch, semester, subject, pageable);
     }
 
     @GetMapping("/{noteId}")
@@ -71,7 +72,7 @@ public class NoteController {
     public ResponseEntity<Resource> preview(Authentication authentication, @PathVariable Long noteId) {
         log.info("Preview requested for note {}", noteId);
         boolean isAdmin = authentication != null && authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        NoteResponse note = isAdmin ? noteService.getAnyById(noteId) : noteService.getById(noteId);
+        NoteResponse note = noteService.preview(noteId, resolveViewerEmail(authentication), isAdmin);
         log.info("Serving note preview: id={} fileUrl={}", noteId, note.fileUrl());
         return proxyPdf(resolvePdfUrl(note.fileUrl()), note.originalFilename(), false);
     }
@@ -177,5 +178,13 @@ public class NoteController {
             return resolved;
         }
         return storedUrl;
+    }
+
+    private String resolveViewerEmail(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        String name = authentication.getName();
+        return "anonymousUser".equalsIgnoreCase(name) ? null : name;
     }
 }

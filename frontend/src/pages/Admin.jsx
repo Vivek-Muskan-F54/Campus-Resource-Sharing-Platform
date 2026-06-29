@@ -318,6 +318,23 @@ export default function Admin() {
     }
   }
 
+  const openNotePreview = async note => {
+    if (!note?.id) return
+    if (note.status === 'APPROVED') {
+      window.open(noteApi.previewUrl(note.id), '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    try {
+      const response = await noteApi.preview(note.id)
+      const blobUrl = URL.createObjectURL(response.data)
+      window.open(blobUrl, '_blank', 'noopener,noreferrer')
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30_000)
+    } catch {
+      setError('Unable to preview this note right now.')
+    }
+  }
+
   const handleReject = async () => {
     if (!rejectModal) return
     await act(
@@ -1008,10 +1025,10 @@ export default function Admin() {
                         </button>
                       )}
                       {note.fileUrl && (
-                        <a href={noteApi.previewUrl(note.id)} target="_blank" rel="noopener noreferrer" className="btn-secondary gap-1.5 text-sm">
+                        <button type="button" onClick={() => openNotePreview(note)} className="btn-secondary gap-1.5 text-sm">
                           <Eye size={13} />
                           View
-                        </a>
+                        </button>
                       )}
                       <button
                         disabled={actionLoading === note.id}

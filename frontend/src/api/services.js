@@ -32,6 +32,7 @@ export const noteApi = {
   getById: id => api.get(`/notes/${id}`),
   create: d => api.post('/notes', d),
   upload: d => api.post('/notes', d),
+  preview: id => api.get(`/notes/${id}/preview`, { responseType: 'blob' }),
   previewUrl: id => `${api.defaults.baseURL}/notes/${id}/preview`,
   downloadUrl: id => `${api.defaults.baseURL}/notes/${id}/download`,
   download: id => api.get(`/notes/${id}/download`),

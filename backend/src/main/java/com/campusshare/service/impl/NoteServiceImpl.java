@@ -46,7 +46,14 @@ public class NoteServiceImpl implements NoteService {
     @Transactional(readOnly = true)
     public Page<NoteResponse> search(String query, String branch, Integer semester,
                                      String subject, Pageable pageable) {
-        return notes.search(blank(query), blank(branch), semester, blank(subject),
+        return search(null, query, branch, semester, subject, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NoteResponse> search(String viewerEmail, String query, String branch, Integer semester,
+                                     String subject, Pageable pageable) {
+        return notes.search(blank(viewerEmail), blank(query), blank(branch), semester, blank(subject),
                         ModerationStatus.APPROVED, pageable)
                 .map(this::toResponse);
     }
@@ -73,6 +80,23 @@ public class NoteServiceImpl implements NoteService {
         Note note = notes.findById(noteId)
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
         return toResponse(note);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NoteResponse preview(Long noteId, String viewerEmail, boolean isAdmin) {
+        if (isAdmin) {
+            return getAnyById(noteId);
+        }
+
+        Note note = notes.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
+
+        if (note.getStatus() == ModerationStatus.APPROVED || ownsNote(note, viewerEmail)) {
+            return toResponse(note);
+        }
+
+        throw new ResourceNotFoundException("Note not found");
     }
 
     @Override
@@ -155,6 +179,13 @@ public class NoteServiceImpl implements NoteService {
         note.setSemester(request.semester());
         note.setSubject(request.subject().trim());
         return note;
+    }
+
+    private boolean ownsNote(Note note, String viewerEmail) {
+        if (viewerEmail == null || note.getUploader() == null || note.getUploader().getEmail() == null) {
+            return false;
+        }
+        return note.getUploader().getEmail().equalsIgnoreCase(viewerEmail);
     }
 
     private Note findApprovedNote(Long noteId) {

@@ -117,7 +117,7 @@ class NoteServiceImplTest {
     @DisplayName("search returns approved notes only")
     void search_returnsApprovedNotes() {
         Note note = approvedNote(501L, uploader(), "https://cdn.example.com/notes/dbms.pdf");
-        when(notes.search(eq("dbms"), eq("cse"), eq(5), eq("database"), eq(ModerationStatus.APPROVED), any()))
+        when(notes.search(isNull(), eq("dbms"), eq("cse"), eq(5), eq("database"), eq(ModerationStatus.APPROVED), any()))
                 .thenReturn(new PageImpl<>(List.of(note)));
 
         Page<?> page = noteService.search("dbms", "cse", 5, "database", PageRequest.of(0, 10));
@@ -137,6 +137,43 @@ class NoteServiceImplTest {
         assertThat(response.status()).isEqualTo(ModerationStatus.REJECTED);
         assertThat(response.id()).isEqualTo(501L);
         assertThat(note.getModerationRemarks()).isEqualTo("Needs revision");
+    }
+
+    @Test
+    @DisplayName("preview allows admins to open pending notes")
+    void preview_allowsAdminPendingNotes() {
+        User uploader = uploader();
+        Note note = pendingNote(501L, uploader, "https://cdn.example.com/notes/dbms.pdf");
+        when(notes.findById(501L)).thenReturn(Optional.of(note));
+
+        var response = noteService.preview(501L, "admin@campus.edu", true);
+
+        assertThat(response.id()).isEqualTo(501L);
+        assertThat(response.status()).isEqualTo(ModerationStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("preview allows uploaders to open their own pending notes")
+    void preview_allowsUploaderPendingNotes() {
+        User uploader = uploader();
+        Note note = pendingNote(501L, uploader, "https://cdn.example.com/notes/dbms.pdf");
+        when(notes.findById(501L)).thenReturn(Optional.of(note));
+
+        var response = noteService.preview(501L, EMAIL, false);
+
+        assertThat(response.id()).isEqualTo(501L);
+        assertThat(response.status()).isEqualTo(ModerationStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("preview hides pending notes from other students")
+    void preview_blocksOtherStudentsForPendingNotes() {
+        User uploader = uploader();
+        Note note = pendingNote(501L, uploader, "https://cdn.example.com/notes/dbms.pdf");
+        when(notes.findById(501L)).thenReturn(Optional.of(note));
+
+        assertThatThrownBy(() -> noteService.preview(501L, "other@campus.edu", false))
+                .isInstanceOf(com.campusshare.common.ResourceNotFoundException.class);
     }
 
     private static User uploader() {
@@ -160,6 +197,12 @@ class NoteServiceImplTest {
         note.setFileUrl(fileUrl);
         note.setStatus(ModerationStatus.APPROVED);
         note.setDownloadCount(0);
+        return note;
+    }
+
+    private static Note pendingNote(Long id, User uploader, String fileUrl) {
+        Note note = approvedNote(id, uploader, fileUrl);
+        note.setStatus(ModerationStatus.PENDING);
         return note;
     }
 }

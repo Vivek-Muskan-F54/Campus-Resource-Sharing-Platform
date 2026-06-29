@@ -10,12 +10,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface NoteService {
     Page<NoteResponse> search(String query, String branch, Integer semester, String subject, Pageable pageable);
+    default Page<NoteResponse> search(String viewerEmail, String query, String branch, Integer semester, String subject, Pageable pageable) {
+        return search(query, branch, semester, subject, pageable);
+    }
 
     Page<NoteResponse> adminSearch(String query, String branch, Integer semester, String subject, ModerationStatus status, Pageable pageable);
 
     NoteResponse getById(Long noteId);
 
     NoteResponse getAnyById(Long noteId);
+
+    NoteResponse preview(Long noteId, String viewerEmail, boolean isAdmin);
 
     NoteResponse uploadPdf(String email, NoteCreateRequest request, MultipartFile file);
 

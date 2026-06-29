@@ -234,14 +234,56 @@ function Pagination({ page, totalPages, onPageChange }) {
   )
 }
 
-function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRate, onDownload, downloading }) {
-  const previewUrl = note ? noteApi.previewUrl(note.id) : ''
+function PdfPreview({ note, canUseAuthenticatedPreview, onClose, onToggleBookmark, bookmarked, rating, onRate, onDownload, downloading }) {
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState('')
 
   useEffect(() => {
-    if (note) {
-      console.debug('[Notes] PDF preview URL', { noteId: note.id, previewUrl })
+    let revokedUrl = null
+    let cancelled = false
+
+    const loadPreview = async () => {
+      if (!note) {
+        setPreviewUrl('')
+        setPreviewError('')
+        setPreviewLoading(false)
+        return
+      }
+
+      setPreviewError('')
+      if (!canUseAuthenticatedPreview) {
+        setPreviewUrl(noteApi.previewUrl(note.id))
+        setPreviewLoading(false)
+        return
+      }
+
+      setPreviewLoading(true)
+      try {
+        const response = await noteApi.preview(note.id)
+        if (cancelled) return
+        const blobUrl = URL.createObjectURL(response.data)
+        revokedUrl = blobUrl
+        setPreviewUrl(blobUrl)
+      } catch (error) {
+        if (!cancelled) {
+          setPreviewError(error?.response?.data?.message || 'Preview unavailable for this note.')
+          setPreviewUrl('')
+        }
+      } finally {
+        if (!cancelled) {
+          setPreviewLoading(false)
+        }
+      }
     }
-  }, [note, previewUrl])
+
+    loadPreview()
+
+    return () => {
+      cancelled = true
+      if (revokedUrl) URL.revokeObjectURL(revokedUrl)
+    }
+  }, [canUseAuthenticatedPreview, note])
 
   return (
     <Modal open={!!note} onClose={onClose} title={note ? note.title : 'Preview note'} size="xl">
@@ -249,7 +291,11 @@ function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRat
         <div className="grid gap-5 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="space-y-4">
             <div className="overflow-hidden rounded-[28px] border border-border bg-surface-elevated shadow-sm">
-              {previewUrl ? (
+              {previewLoading ? (
+                <div className="flex h-[72vh] items-center justify-center text-sm text-muted lg:h-[78vh]">
+                  Loading preview...
+                </div>
+              ) : previewUrl ? (
                 <iframe
                   title={note.title}
                   src={previewUrl}
@@ -257,7 +303,7 @@ function PdfPreview({ note, onClose, onToggleBookmark, bookmarked, rating, onRat
                 />
               ) : (
                 <div className="flex h-[72vh] items-center justify-center text-sm text-muted lg:h-[78vh]">
-                  Preview unavailable for this note.
+                  {previewError || 'Preview unavailable for this note.'}
                 </div>
               )}
             </div>
@@ -572,6 +618,10 @@ export default function Notes() {
 
   const activeCount = filterCount(filters)
   const bookmarkedCount = bookmarked.size
+  const canUseAuthenticatedPreview = !!previewNote
+    && previewNote.status !== 'APPROVED'
+    && isAuthenticated
+    && (isAdmin || String(previewNote.uploaderId) === String(user?.id))
 
   const filteredNotes = useMemo(() => {
     return showBookmarked ? savedNotes : notes
@@ -1414,6 +1464,7 @@ export default function Notes() {
 
       <PdfPreview
         note={previewNote}
+        canUseAuthenticatedPreview={canUseAuthenticatedPreview}
         onClose={() => setPreviewNote(null)}
         onToggleBookmark={toggleBookmark}
         bookmarked={previewNote ? bookmarked.has(String(previewNote.id)) : false}

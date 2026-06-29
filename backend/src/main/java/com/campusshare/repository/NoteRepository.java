@@ -16,7 +16,8 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
             value = """
                     select n from Note n
                     join fetch n.uploader
-                    where (:status is null or n.status = :status)
+                    where ((:viewerEmail is not null and lower(n.uploader.email) = lower(:viewerEmail))
+                           or (:status is null or n.status = :status))
                       and (:q is null or lower(n.title) like lower(concat('%', :q, '%'))
                            or lower(n.subject) like lower(concat('%', :q, '%')))
                       and (:branch is null or lower(n.branch) = lower(:branch))
@@ -25,7 +26,8 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
                     """,
             countQuery = """
                     select count(n) from Note n
-                    where (:status is null or n.status = :status)
+                    where ((:viewerEmail is not null and lower(n.uploader.email) = lower(:viewerEmail))
+                           or (:status is null or n.status = :status))
                       and (:q is null or lower(n.title) like lower(concat('%', :q, '%'))
                            or lower(n.subject) like lower(concat('%', :q, '%')))
                       and (:branch is null or lower(n.branch) = lower(:branch))
@@ -33,6 +35,7 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
                       and (:subject is null or lower(n.subject) like lower(concat('%', :subject, '%')))
                     """)
     Page<Note> search(
+            @Param("viewerEmail") String viewerEmail,
             @Param("q") String query,
             @Param("branch") String branch,
             @Param("semester") Integer semester,

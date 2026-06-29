@@ -65,6 +65,8 @@ export default function Chat() {
   const { user } = useAuth()
   const stompRef = useRef(null)
   const selectedUserIdRef = useRef('')
+  const messageIdsRef = useRef(new Set())
+  const pendingEchoRef = useRef(new Map())
   const messagesEndRef = useRef(null)
   const currentUserId = String(user?.id || '')
   const [onlineUsers, setOnlineUsers] = useState([])
@@ -75,6 +77,47 @@ export default function Chat() {
   const [showSidebar, setShowSidebar] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [error, setError] = useState('')
+
+  const buildMessageSignature = message =>
+    [
+      message.senderId,
+      message.recipientId,
+      message.productId ?? '',
+      message.content ?? '',
+    ].join('|')
+
+  const seedMessages = nextMessages => {
+    const normalized = Array.isArray(nextMessages) ? nextMessages : []
+    messageIdsRef.current = new Set(normalized.map(message => String(message.id)).filter(Boolean))
+    pendingEchoRef.current.clear()
+    setMessages(normalized)
+  }
+
+  const upsertIncomingMessage = message => {
+    if (!message) return
+
+    const signature = buildMessageSignature(message)
+    const pendingTempId = pendingEchoRef.current.get(signature)
+
+    if (pendingTempId) {
+      pendingEchoRef.current.delete(signature)
+      messageIdsRef.current.add(String(message.id))
+      setMessages(prev =>
+        prev.map(item => (String(item.id) === String(pendingTempId) ? message : item))
+      )
+      return
+    }
+
+    if (message.id != null && messageIdsRef.current.has(String(message.id))) {
+      return
+    }
+
+    if (message.id != null) {
+      messageIdsRef.current.add(String(message.id))
+    }
+
+    setMessages(prev => [...prev, message])
+  }
 
   const visibleOnlineUsers = useMemo(
     () => onlineUsers.filter(u => String(u.id) !== currentUserId),
@@ -124,9 +167,11 @@ export default function Chat() {
     if (!otherUserId) return
     try {
       const res = await chatApi.history(otherUserId, { page: 0, size: 50, sort: 'createdAt,asc' })
-      setMessages(res.data?.messages || [])
+      seedMessages(res.data?.messages || [])
       await chatApi.markRead(otherUserId)
     } catch {
+      messageIdsRef.current.clear()
+      pendingEchoRef.current.clear()
       setMessages([])
     }
   }
@@ -151,13 +196,13 @@ export default function Chat() {
         setConnected(true)
         client.subscribe('/user/queue/messages', frame => {
           const message = JSON.parse(frame.body)
-          setMessages(prev => {
-            const open =
-              selectedUserIdRef.current &&
-              (String(message.senderId) === String(selectedUserIdRef.current) ||
-                String(message.recipientId) === String(selectedUserIdRef.current))
-            return open ? [...prev, message] : prev
-          })
+          const open =
+            selectedUserIdRef.current &&
+            (String(message.senderId) === String(selectedUserIdRef.current) ||
+              String(message.recipientId) === String(selectedUserIdRef.current))
+          if (open) {
+            upsertIncomingMessage(message)
+          }
         })
         client.subscribe('/topic/presence', frame => {
           const payload = JSON.parse(frame.body)
@@ -207,6 +252,24 @@ export default function Chat() {
       return
     }
     setError('')
+    const content = draft.trim()
+    const tempId = `tmp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const optimisticMessage = {
+      id: tempId,
+      senderId: Number(currentUserId),
+      senderName: user?.name || user?.email || 'You',
+      recipientId,
+      recipientName: selectedUser?.name || selectedUser?.email || 'User',
+      productId: null,
+      productTitle: null,
+      content,
+      readFlag: false,
+      readAt: null,
+      sentAt: new Date().toISOString(),
+    }
+    pendingEchoRef.current.set(buildMessageSignature(optimisticMessage), tempId)
+    setMessages(prev => [...prev, optimisticMessage])
+    messageIdsRef.current.add(tempId)
     stompRef.current.publish({
       destination: '/app/chat.send',
       headers: {
@@ -214,11 +277,11 @@ export default function Chat() {
       },
       body: JSON.stringify({
         recipientId,
-        content: draft.trim(),
+        content,
       }),
     })
     void activityTracker.chatSent(recipientId, {
-      preview: draft.trim().slice(0, 120),
+      preview: content.slice(0, 120),
     })
     setDraft('')
   }
