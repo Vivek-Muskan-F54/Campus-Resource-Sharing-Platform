@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Crown, Medal, NotebookPen, Sparkles, TrendingUp } from 'lucide-react'
 import { reputationApi } from '../api/services'
 import Avatar from '../components/ui/Avatar'
@@ -79,30 +79,29 @@ export default function Leaderboard() {
   const [error, setError] = useState('')
   const [data, setData] = useState(null)
 
-  useEffect(() => {
-    let cancelled = false
-
-    const load = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const response = await reputationApi.leaderboard()
-        if (!cancelled) setData(response.data || null)
-      } catch (err) {
-        if (!cancelled) {
-          setError(err?.response?.data?.message || 'Could not load the leaderboard.')
-          setData(null)
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
+  const loadLeaderboard = useCallback(async (cancelledRef) => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await reputationApi.leaderboard()
+      if (!cancelledRef?.current) setData(response.data || null)
+    } catch (err) {
+      if (!cancelledRef?.current) {
+        setError(err?.response?.data?.message || 'Could not load the leaderboard.')
+        setData(null)
       }
-    }
-
-    load()
-    return () => {
-      cancelled = true
+    } finally {
+      if (!cancelledRef?.current) setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    const cancelledRef = { current: false }
+    void loadLeaderboard(cancelledRef)
+    return () => {
+      cancelledRef.current = true
+    }
+  }, [loadLeaderboard])
 
   const sections = useMemo(() => ({
     topContributors: data?.topContributors || [],
@@ -127,7 +126,12 @@ export default function Leaderboard() {
 
       {error && (
         <div className="rounded-3xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
-          {error}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => void loadLeaderboard()} className="btn-secondary gap-2 self-start">
+              Retry
+            </button>
+          </div>
         </div>
       )}
 

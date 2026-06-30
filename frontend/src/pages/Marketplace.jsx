@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -198,82 +198,85 @@ export default function Marketplace() {
   const [recommendedProducts, setRecommendedProducts] = useState([])
   const [recommendedLoading, setRecommendedLoading] = useState(false)
   const [faqOpen, setFaqOpen] = useState(0)
+  const [error, setError] = useState('')
+  const [recommendationError, setRecommendationError] = useState('')
 
-  useEffect(() => {
-    let cancelled = false
+  const loadFeaturedContent = useCallback(async (cancelledRef) => {
+    setLoading(true)
+    setError('')
+    try {
+      const [listingRes, noteRes, categoryRes] = await Promise.all([
+        listingApi.search({ status: 'ACTIVE', page: 0, size: 4, sort: 'createdAt,desc' }),
+        noteApi.all({ page: 0, size: 4, sort: 'createdAt,desc' }),
+        categoryApi.all(),
+      ])
 
-    const load = async () => {
-      setLoading(true)
-      try {
-        const [listingRes, noteRes, categoryRes] = await Promise.all([
-          listingApi.search({ status: 'ACTIVE', page: 0, size: 4, sort: 'createdAt,desc' }),
-          noteApi.all({ page: 0, size: 4, sort: 'createdAt,desc' }),
-          categoryApi.all(),
-        ])
+      if (cancelledRef?.current) return
 
-        if (cancelled) return
+      const listingData = listingRes.data || {}
+      const noteData = noteRes.data || {}
+      const featuredProducts = listingData.content || []
+      const featuredStudyNotes = noteData.content || []
 
-        const listingData = listingRes.data || {}
-        const noteData = noteRes.data || {}
-        const featuredProducts = listingData.content || []
-        const featuredStudyNotes = noteData.content || []
-
-        setFeaturedListings(featuredProducts)
-        setFeaturedNotes(featuredStudyNotes)
-        setHeroStats({
-          listings: listingData.totalElements ?? featuredProducts.length,
-          notes: noteData.totalElements ?? featuredStudyNotes.length,
-          categories: (categoryRes.data?.content || categoryRes.data || []).length,
-          highlights: featuredProducts.length + featuredStudyNotes.length,
-        })
-      } catch {
-        if (!cancelled) {
-          setFeaturedListings([])
-          setFeaturedNotes([])
-          setHeroStats({ listings: 0, notes: 0, categories: 0, highlights: 0 })
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
+      setFeaturedListings(featuredProducts)
+      setFeaturedNotes(featuredStudyNotes)
+      setHeroStats({
+        listings: listingData.totalElements ?? featuredProducts.length,
+        notes: noteData.totalElements ?? featuredStudyNotes.length,
+        categories: (categoryRes.data?.content || categoryRes.data || []).length,
+        highlights: featuredProducts.length + featuredStudyNotes.length,
+      })
+    } catch (err) {
+      if (!cancelledRef?.current) {
+        setFeaturedListings([])
+        setFeaturedNotes([])
+        setHeroStats({ listings: 0, notes: 0, categories: 0, highlights: 0 })
+        setError(err?.response?.data?.message || 'Could not load featured campus content right now.')
       }
-    }
-
-    load()
-    return () => {
-      cancelled = true
+    } finally {
+      if (!cancelledRef?.current) setLoading(false)
     }
   }, [])
 
-  useEffect(() => {
-    let cancelled = false
-
-    const loadRecommendations = async () => {
-      if (!user) {
-        setRecommendedProducts([])
-        setRecommendedLoading(false)
-        return
-      }
-
-      setRecommendedLoading(true)
-      try {
-        const response = await recommendationApi.products({ page: 0, size: 6, sort: 'createdAt,desc' })
-        if (cancelled) return
-        setRecommendedProducts(response.data?.content || [])
-      } catch {
-        if (!cancelled) {
-          setRecommendedProducts([])
-        }
-      } finally {
-        if (!cancelled) {
-          setRecommendedLoading(false)
-        }
-      }
+  const loadRecommendations = useCallback(async (cancelledRef) => {
+    if (!user) {
+      setRecommendedProducts([])
+      setRecommendedLoading(false)
+      setRecommendationError('')
+      return
     }
 
-    loadRecommendations()
-    return () => {
-      cancelled = true
+    setRecommendedLoading(true)
+    setRecommendationError('')
+    try {
+      const response = await recommendationApi.products({ page: 0, size: 6, sort: 'createdAt,desc' })
+      if (cancelledRef?.current) return
+      setRecommendedProducts(response.data?.content || [])
+    } catch (err) {
+      if (!cancelledRef?.current) {
+        setRecommendedProducts([])
+        setRecommendationError(err?.response?.data?.message || 'Could not load recommendations right now.')
+      }
+    } finally {
+      if (!cancelledRef?.current) setRecommendedLoading(false)
     }
   }, [user])
+
+  useEffect(() => {
+    const cancelledRef = { current: false }
+    void loadFeaturedContent(cancelledRef)
+    return () => {
+      cancelledRef.current = true
+    }
+  }, [loadFeaturedContent])
+
+  useEffect(() => {
+    const cancelledRef = { current: false }
+    void loadRecommendations(cancelledRef)
+    return () => {
+      cancelledRef.current = true
+    }
+  }, [loadRecommendations])
 
   const quickLinks = useMemo(
     () => [
@@ -382,12 +385,33 @@ export default function Marketplace() {
         </div>
       </section>
 
+      {error && (
+        <div className="rounded-3xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => void loadFeaturedContent()} className="btn-secondary gap-2 self-start">
+              Retry
+            </button>
+          </div>
+        </div>
+      )}
+
       <section className="space-y-6">
         <SectionHeading
           eyebrow="Personalized picks"
           title="You May Like"
           description="Marketplace items ranked from the categories you engage with most."
         />
+        {recommendationError && (
+          <div className="rounded-3xl border border-warning/20 bg-warning-soft px-4 py-3 text-sm text-warning">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>{recommendationError}</span>
+              <button type="button" onClick={() => void loadRecommendations()} className="btn-secondary gap-2 self-start">
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
         {user ? (
           recommendedLoading ? (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">

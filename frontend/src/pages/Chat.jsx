@@ -343,6 +343,7 @@ export default function Chat() {
     if (!isLoggedIn) {
       setConversationSummaries([])
       setConversationsLoading(false)
+      setError('')
       return
     }
 
@@ -362,9 +363,11 @@ export default function Chat() {
           : []
       setOnlineUsers(onlineList)
       setConversationSummaries(prev => mergeConversationSnapshots(prev, list))
+      setError('')
     } catch {
       setConversationSummaries([])
       setOnlineUsers([])
+      setError('Could not load conversations right now. You can retry in a moment.')
     } finally {
       setConversationsLoading(false)
     }
@@ -675,6 +678,17 @@ export default function Chat() {
                     : 'Disconnected'}
               </div>
             </div>
+
+            {error && (
+              <div className="mb-3 rounded-2xl border border-danger/20 bg-danger-soft px-3 py-2 text-xs text-danger">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 flex-1">{error}</span>
+                  <button type="button" onClick={() => void loadConversations()} className="btn-secondary shrink-0 px-3 py-1 text-[11px]">
+                    Retry
+                  </button>
+                </div>
+              </div>
+            )}
 
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AlertCircle,
   ArrowRight,
@@ -64,12 +64,12 @@ function Toast({ type, message, onDismiss }) {
 
 function ImageGallery({ images, title, compact = false }) {
   const [index, setIndex] = useState(0)
-  const list = images?.length ? images : []
+  const list = useMemo(() => (images?.length ? images : []), [images])
   const current = list[index] || null
 
   useEffect(() => {
     setIndex(0)
-  }, [images])
+  }, [list])
 
   const prev = e => {
     e.stopPropagation()
@@ -186,6 +186,9 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
   const [activeItem, setActiveItem] = useState(item)
   const [similarItems, setSimilarItems] = useState([])
   const [loadingSimilar, setLoadingSimilar] = useState(false)
+  const dialogRef = useRef(null)
+  const toastTimerRef = useRef(null)
+  const onCloseRef = useRef(onClose)
 
   const typeConf = TYPE_CONFIG[activeItem.type] || TYPE_CONFIG.SELL
   const TypeIcon = typeConf.icon
@@ -193,6 +196,30 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
   useEffect(() => {
     setActiveItem(item)
   }, [item])
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    window.requestAnimationFrame(() => {
+      dialogRef.current?.focus()
+    })
+
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onCloseRef.current?.()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      previousFocus?.focus?.()
+    }
+  }, [])
 
   useEffect(() => {
     if (!activeItem?.id) return
@@ -244,8 +271,16 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
 
   const showToast = (type, message) => {
     setToast({ type, message })
-    setTimeout(() => setToast(null), 3500)
+    window.clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 3500)
   }
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(toastTimerRef.current)
+    },
+    []
+  )
 
   const handleRequest = async () => {
     setRequesting(true)
@@ -266,11 +301,18 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
     <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={`product-modal-${activeItem.id}`}
+        tabIndex={-1}
         className="relative max-h-[92vh] w-full overflow-y-auto rounded-t-[32px] border border-border bg-surface shadow-2xl animate-slide-up sm:max-w-3xl sm:rounded-[28px]"
         onClick={e => e.stopPropagation()}
       >
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Close product details"
           className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-surface/85 text-muted shadow-sm backdrop-blur-sm transition-colors hover:bg-surface"
         >
           <X size={16} />
@@ -284,7 +326,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-primary">
                 Marketplace item
               </p>
-              <h2 className="mt-1 text-2xl font-bold leading-snug text-foreground">
+              <h2 id={`product-modal-${activeItem.id}`} className="mt-1 text-2xl font-bold leading-snug text-foreground">
                 {activeItem.title}
               </h2>
             </div>
@@ -481,7 +523,7 @@ function ProductModal({ item, user, onClose, onRequestSuccess }) {
   )
 }
 
-export default function ListingCard({
+function ListingCard({
   item,
   user,
   onRequestSuccess,
@@ -494,6 +536,7 @@ export default function ListingCard({
   const [modalOpen, setModalOpen] = useState(false)
   const [requesting, setRequesting] = useState(false)
   const [toast, setToast] = useState(null)
+  const toastTimerRef = useRef(null)
 
   const typeConf = TYPE_CONFIG[item.type] || TYPE_CONFIG.SELL
   const TypeIcon = typeConf.icon
@@ -505,8 +548,16 @@ export default function ListingCard({
 
   const showToast = (type, message) => {
     setToast({ type, message })
-    setTimeout(() => setToast(null), 2500)
+    window.clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 2500)
   }
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(toastTimerRef.current)
+    },
+    []
+  )
 
   const handleRequest = async e => {
     e.stopPropagation()
@@ -549,7 +600,12 @@ export default function ListingCard({
         onClick={() => setModalOpen(true)}
         role="button"
         tabIndex={0}
-        onKeyDown={e => e.key === 'Enter' && setModalOpen(true)}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setModalOpen(true)
+          }
+        }}
         aria-label={`View details for ${item.title}`}
       >
         <div
@@ -719,3 +775,5 @@ export default function ListingCard({
     </>
   )
 }
+
+export default memo(ListingCard)

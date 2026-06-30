@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Award, BadgeCheck, BarChart3, Crown, Sparkles, Trophy } from 'lucide-react'
 import { reputationApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
@@ -47,30 +47,29 @@ export default function Profile() {
   const [error, setError] = useState('')
   const [reputation, setReputation] = useState(null)
 
-  useEffect(() => {
-    let cancelled = false
-
-    const load = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const response = await reputationApi.me()
-        if (!cancelled) setReputation(response.data || null)
-      } catch (err) {
-        if (!cancelled) {
-          setError(err?.response?.data?.message || 'Could not load your reputation profile.')
-          setReputation(null)
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
+  const loadProfile = useCallback(async (cancelledRef) => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await reputationApi.me()
+      if (!cancelledRef?.current) setReputation(response.data || null)
+    } catch (err) {
+      if (!cancelledRef?.current) {
+        setError(err?.response?.data?.message || 'Could not load your reputation profile.')
+        setReputation(null)
       }
-    }
-
-    load()
-    return () => {
-      cancelled = true
+    } finally {
+      if (!cancelledRef?.current) setLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    const cancelledRef = { current: false }
+    void loadProfile(cancelledRef)
+    return () => {
+      cancelledRef.current = true
+    }
+  }, [loadProfile])
 
   const progress = reputation?.progress || { currentScore: 0, nextThreshold: null, percent: 0, nextLevel: null }
   const badgeVariant = useMemo(() => levelVariant(reputation?.level), [reputation?.level])
@@ -124,7 +123,12 @@ export default function Profile() {
 
       {error && (
         <div className="rounded-3xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
-          {error}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => void loadProfile()} className="btn-secondary gap-2 self-start">
+              Retry
+            </button>
+          </div>
         </div>
       )}
 

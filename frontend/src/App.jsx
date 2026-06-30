@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Link, Route, Routes } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -23,7 +23,7 @@ const Admin = lazy(() => import('./pages/Admin'))
 
 function PageLoader() {
   return (
-    <div className="flex items-center justify-center min-h-[50vh]">
+    <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-live="polite">
       <div className="flex flex-col items-center gap-3">
         <div className="h-8 w-8 rounded-full border-[3px] border-primary-soft border-t-primary animate-spin" />
         <p className="text-sm text-muted">Loading...</p>
@@ -81,7 +81,7 @@ export default function App() {
               <p className="text-muted mb-6">
                 The page you're looking for doesn't exist or has been moved.
               </p>
-              <a href="/" className="btn">Go home</a>
+              <Link to="/" className="btn">Go home</Link>
             </div>
           } />
         </Route>

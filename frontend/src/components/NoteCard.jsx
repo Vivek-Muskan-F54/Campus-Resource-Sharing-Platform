@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react'
 import { Bookmark, BookmarkCheck, Download, Eye, FileText, Hash, Star } from 'lucide-react'
 import Badge from './ui/Badge'
 
@@ -17,10 +18,14 @@ function formatDate(value) {
 }
 
 function RatingStars({ value = 0, size = 14 }) {
+  const stars = useMemo(
+    () => Array.from({ length: 5 }).map((_, index) => index + 1),
+    []
+  )
+
   return (
     <div className="flex items-center gap-1">
-      {Array.from({ length: 5 }).map((_, index) => {
-        const starValue = index + 1
+      {stars.map(starValue => {
         const filled = value >= starValue
         return (
           <Star
@@ -35,7 +40,7 @@ function RatingStars({ value = 0, size = 14 }) {
   )
 }
 
-export default function NoteCard({
+function NoteCard({
   note,
   bookmarked = false,
   rating = 0,
@@ -53,7 +58,13 @@ export default function NoteCard({
       onClick={() => onOpenPreview(note)}
       role="button"
       tabIndex={0}
-      onKeyDown={e => e.key === 'Enter' && onOpenPreview(note)}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpenPreview(note)
+        }
+      }}
+      aria-label={`Open preview for ${note.title}`}
     >
       <div className="flex w-full flex-col text-left">
         <div className="relative overflow-hidden bg-surface-elevated p-4">
@@ -155,3 +166,5 @@ export default function NoteCard({
     </article>
   )
 }
+
+export default memo(NoteCard)

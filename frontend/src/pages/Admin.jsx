@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   Activity,
   AlertCircle,
@@ -263,7 +263,7 @@ export default function Admin() {
   const [idCardModal, setIdCardModal] = useState(null)
   const [error, setError] = useState('')
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -300,11 +300,11 @@ export default function Admin() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
-    load()
-  }, [])
+    void load()
+  }, [load])
 
   const act = async (fn, id) => {
     setActionLoading(id)
@@ -470,7 +470,7 @@ export default function Admin() {
             </div>
           </div>
         </div>
-        <button onClick={load} className="btn-secondary gap-1.5 self-start lg:self-auto">
+        <button type="button" onClick={() => void load()} className="btn-secondary gap-1.5 self-start lg:self-auto">
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
           Refresh
         </button>
@@ -478,7 +478,12 @@ export default function Admin() {
 
       {error && (
         <div className="rounded-2xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
-          {error}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => void load()} className="btn-secondary gap-2 self-start">
+              Retry
+            </button>
+          </div>
         </div>
       )}
 

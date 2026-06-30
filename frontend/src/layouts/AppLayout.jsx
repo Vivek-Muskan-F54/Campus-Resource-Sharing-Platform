@@ -104,6 +104,8 @@ export default function AppLayout() {
                   <button
                     type="button"
                     onClick={() => setProfileOpen(v => !v)}
+                    aria-haspopup="menu"
+                    aria-expanded={profileOpen}
                     className="flex items-center gap-2 rounded-2xl border border-border bg-surface/80 px-3 py-2 text-sm font-semibold text-foreground shadow-sm backdrop-blur hover:border-border-strong hover:bg-surface"
                   >
                     <Avatar name={user.name || user.email} size="sm" />
@@ -140,6 +142,7 @@ export default function AppLayout() {
                           Leaderboard
                         </Link>
                         <button
+                          type="button"
                           onClick={logout}
                           className="flex w-full items-center gap-2.5 rounded-2xl px-3 py-2 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft/70"
                         >
@@ -226,6 +229,7 @@ export default function AppLayout() {
               <div className="mt-4 border-t border-border pt-4">
                 {user ? (
                   <button
+                    type="button"
                     onClick={logout}
                     className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-sm font-semibold text-danger transition-colors hover:bg-danger-soft/70"
                   >

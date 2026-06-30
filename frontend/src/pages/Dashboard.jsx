@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Bell,
@@ -184,6 +184,22 @@ export default function Dashboard() {
   const [dashboard, setDashboard] = useState(null)
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readBookmarkSet())
 
+  const loadDashboard = useCallback(async (cancelledRef) => {
+    setLoading(true)
+    setError('')
+    try {
+      const response = await dashboardApi.personalized({ page: 0, size: PAGE_SIZE })
+      if (!cancelledRef?.current) setDashboard(response.data || null)
+    } catch (err) {
+      if (!cancelledRef?.current) {
+        setError(err?.response?.data?.message || 'Could not load your personalized dashboard.')
+        setDashboard(null)
+      }
+    } finally {
+      if (!cancelledRef?.current) setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (typeof window === 'undefined') return undefined
     const handleStorage = event => {
@@ -194,29 +210,12 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    let cancelled = false
-
-    const load = async () => {
-      setLoading(true)
-      setError('')
-      try {
-        const response = await dashboardApi.personalized({ page: 0, size: PAGE_SIZE })
-        if (!cancelled) setDashboard(response.data || null)
-      } catch (err) {
-        if (!cancelled) {
-          setError(err?.response?.data?.message || 'Could not load your personalized dashboard.')
-          setDashboard(null)
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-
-    load()
+    const cancelledRef = { current: false }
+    void loadDashboard(cancelledRef)
     return () => {
-      cancelled = true
+      cancelledRef.current = true
     }
-  }, [])
+  }, [loadDashboard])
 
   const sections = useMemo(() => {
     const defaults = {
@@ -265,12 +264,12 @@ export default function Dashboard() {
     window.open(noteApi.downloadUrl(note.id), '_blank', 'noopener,noreferrer')
   }
 
-  const bannerStats = [
+  const bannerStats = useMemo(() => [
     { label: 'Recommended notes', value: sections.recommendedNotes.totalElements || sections.recommendedNotes.content.length, icon: BookOpen },
     { label: 'Trending notes', value: sections.trendingNotes.totalElements || sections.trendingNotes.content.length, icon: TrendingUp, tone: 'amber' },
     { label: 'Recent downloads', value: sections.recentDownloads.totalElements || sections.recentDownloads.content.length, icon: Download, tone: 'emerald' },
     { label: 'Unread notifications', value: sections.recentNotifications.content.filter(item => !item.readFlag).length, icon: Bell, tone: 'info' },
-  ]
+  ], [sections])
 
   return (
     <div className="space-y-8 animate-in">
@@ -312,9 +311,14 @@ export default function Dashboard() {
 
       {error && (
         <div className="rounded-3xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
-          <div className="flex items-center gap-2">
-            <AlertCircle size={16} />
-            {error}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} />
+              {error}
+            </div>
+            <button type="button" onClick={() => void loadDashboard()} className="btn-secondary gap-2 self-start">
+              Retry
+            </button>
           </div>
         </div>
       )}

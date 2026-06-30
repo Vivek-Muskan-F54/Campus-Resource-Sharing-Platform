@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Package,
@@ -65,18 +65,21 @@ export default function Orders() {
   const [qrUrls, setQrUrls] = useState({})
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState(null)
+  const [error, setError] = useState('')
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true)
+    setError('')
     try {
       const res = await orderApi.mine()
       setOrders(res.data?.content || [])
-    } catch {
+    } catch (err) {
       setOrders([])
+      setError(err?.response?.data?.message || 'Could not load your orders right now.')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     load()
@@ -84,39 +87,45 @@ export default function Orders() {
 
   useEffect(() => {
     const objectUrls = []
+    let cancelled = false
     const readyOrders = orders.filter(o => o.status === 'READY_FOR_HANDOVER')
     if (!readyOrders.length) {
       setQrUrls({})
-      return
+      return () => {}
     }
 
     Promise.allSettled(
       readyOrders.map(async order => {
         const res = await orderApi.qr(order.id)
+        if (cancelled) return null
         const url = URL.createObjectURL(res.data)
         objectUrls.push(url)
         return [order.id, url]
       })
     ).then(results => {
+      if (cancelled) return
       setQrUrls(
         Object.fromEntries(results.filter(r => r.status === 'fulfilled').map(r => r.value))
       )
     })
 
-    return () => objectUrls.forEach(url => URL.revokeObjectURL(url))
+    return () => {
+      cancelled = true
+      objectUrls.forEach(url => URL.revokeObjectURL(url))
+    }
   }, [orders])
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = useCallback(async (id, status) => {
     setUpdating(id)
     try {
       await orderApi.status(id, status)
       await load()
     } catch (err) {
-      alert(err?.response?.data?.message || 'Could not update order.')
+      setError(err?.response?.data?.message || 'Could not update order.')
     } finally {
       setUpdating(null)
     }
-  }
+  }, [load])
 
   const statusConfig = {
     REQUESTED: { label: 'Approve', action: 'APPROVED', class: 'btn' },
@@ -142,7 +151,7 @@ export default function Orders() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <button onClick={load} className="btn-secondary gap-1.5">
+              <button type="button" onClick={() => void load()} className="btn-secondary gap-1.5">
                 <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
                 Refresh
               </button>
@@ -160,6 +169,15 @@ export default function Orders() {
           {Array.from({ length: 3 }).map((_, i) => (
             <SkeletonRow key={i} />
           ))}
+        </div>
+      ) : error ? (
+        <div className="rounded-3xl border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span>{error}</span>
+            <button type="button" onClick={() => void load()} className="btn-secondary gap-2 self-start">
+              Retry
+            </button>
+          </div>
         </div>
       ) : orders.length === 0 ? (
         <EmptyState
