@@ -11,6 +11,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface MessageRepository extends JpaRepository<Message, Long> {
+    @Query("""
+            select distinct m from Message m
+            join fetch m.sender
+            join fetch m.recipient
+            left join fetch m.product
+            where m.sender.id = :userId or m.recipient.id = :userId
+            order by m.createdAt desc
+            """)
+    List<Message> findAllConversationMessagesForUser(@Param("userId") Long userId);
+
     @Query(value = """
             select m from Message m
             join fetch m.sender

@@ -805,7 +805,7 @@ export default function Admin() {
 
       {tab === 'verifications' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="section-title">Pending ID Verifications</h2>
             <Badge variant="amber">{verifications.length} pending</Badge>
           </div>
@@ -818,7 +818,7 @@ export default function Admin() {
             <div className="space-y-3">
               {verifications.map(item => (
                 <div key={item.id} className="card">
-                  <div className="flex flex-wrap items-start gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                     <Avatar name={item.studentName || 'U'} size="md" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-foreground">{item.studentName}</p>
@@ -827,7 +827,7 @@ export default function Admin() {
                         Submitted: {new Date(item.createdAt || Date.now()).toLocaleDateString()}
                       </p>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                       {item.idCardUrl && (
                         <button onClick={() => setIdCardModal(item)} className="btn-secondary gap-1.5 text-sm">
                           <Eye size={13} />
@@ -837,7 +837,7 @@ export default function Admin() {
                       <button
                         disabled={actionLoading === item.id}
                         onClick={() => act(() => adminApi.approveVerification(item.id, 'Approved by admin'), item.id)}
-                        className="btn-emerald gap-1.5 text-sm"
+                        className="btn-emerald w-full justify-center gap-1.5 text-sm sm:w-auto"
                       >
                         <CheckCircle2 size={13} />
                         Approve
@@ -848,7 +848,7 @@ export default function Admin() {
                           setRejectModal(item)
                           setRejectRemarks('')
                         }}
-                        className="btn-danger gap-1.5 text-sm"
+                        className="btn-danger w-full justify-center gap-1.5 text-sm sm:w-auto"
                       >
                         <XCircle size={13} />
                         Reject
@@ -864,7 +864,7 @@ export default function Admin() {
 
       {tab === 'users' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="section-title">All Users</h2>
             <Badge variant="slate">{users.length} loaded</Badge>
           </div>
@@ -890,12 +890,12 @@ export default function Admin() {
                         <p className="text-xs text-text-subtle">Roll: {u.collegeRollNumber}</p>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                       {u.enabled ? (
                         <button
                           disabled={actionLoading === u.id}
                           onClick={() => act(() => adminApi.blockUser(u.id), u.id)}
-                          className="btn-danger gap-1.5 text-sm"
+                          className="btn-danger w-full justify-center gap-1.5 text-sm sm:w-auto"
                         >
                           <Ban size={13} />
                           Block
@@ -904,7 +904,7 @@ export default function Admin() {
                         <button
                           disabled={actionLoading === u.id}
                           onClick={() => act(() => adminApi.unblockUser(u.id), u.id)}
-                          className="btn gap-1.5 text-sm"
+                          className="btn w-full justify-center gap-1.5 text-sm sm:w-auto"
                         >
                           <CheckCircle2 size={13} />
                           Unblock
@@ -921,7 +921,7 @@ export default function Admin() {
 
       {tab === 'products' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="section-title">Active Products</h2>
             <Badge variant="slate">{products.length} loaded</Badge>
           </div>
@@ -936,7 +936,7 @@ export default function Admin() {
                 const image = product.imageUrls?.[0]
                 return (
                   <div key={product.id} className="card">
-                    <div className="flex flex-wrap items-start gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                       <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-surface-elevated">
                         {image ? (
                           <img src={image} alt={product.title} className="h-full w-full object-cover" />
@@ -957,7 +957,7 @@ export default function Admin() {
                           <p className="mt-1 text-xs text-text-subtle">by {product.seller}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                         <span className="font-bold text-primary">
                           Rs. {Number(product.price || 0).toLocaleString('en-IN')}
                         </span>
@@ -968,7 +968,7 @@ export default function Admin() {
                               act(() => adminApi.removeProduct(product.id), product.id)
                             }
                           }}
-                          className="btn-danger gap-1.5 text-sm"
+                          className="btn-danger w-full justify-center gap-1.5 text-sm sm:w-auto"
                         >
                           <Trash2 size={13} />
                           Remove
@@ -985,7 +985,7 @@ export default function Admin() {
 
       {tab === 'notes' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="section-title">Pending Notes</h2>
             <Badge variant="amber">{notes.length} pending</Badge>
           </div>
@@ -998,7 +998,7 @@ export default function Admin() {
             <div className="space-y-3">
               {notes.map(note => (
                 <div key={note.id} className="card">
-                  <div className="flex flex-wrap items-start gap-4">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                     <div className="flex-shrink-0 rounded-xl bg-primary-soft p-3 text-primary">
                       <FileText size={18} />
                     </div>
@@ -1013,12 +1013,12 @@ export default function Admin() {
                         <p className="mt-1 text-xs text-text-subtle">by {note.uploaderName}</p>
                       )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                       {note.status === 'PENDING' && (
                         <button
                           disabled={actionLoading === note.id}
                           onClick={() => act(() => adminApi.approveNote(note.id), note.id)}
-                          className="btn-emerald gap-1.5 text-sm"
+                          className="btn-emerald w-full justify-center gap-1.5 text-sm sm:w-auto"
                         >
                           <CheckCircle2 size={13} />
                           Approve
@@ -1037,7 +1037,7 @@ export default function Admin() {
                             act(() => adminApi.removeNote(note.id), note.id)
                           }
                         }}
-                        className="btn-danger gap-1.5 text-sm"
+                        className="btn-danger w-full justify-center gap-1.5 text-sm sm:w-auto"
                       >
                         <Trash2 size={13} />
                         Remove

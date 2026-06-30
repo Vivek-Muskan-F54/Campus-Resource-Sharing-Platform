@@ -292,31 +292,31 @@ function PdfPreview({ note, canUseAuthenticatedPreview, onClose, onToggleBookmar
           <div className="space-y-4">
             <div className="overflow-hidden rounded-[28px] border border-border bg-surface-elevated shadow-sm">
               {previewLoading ? (
-                <div className="flex h-[72vh] items-center justify-center text-sm text-muted lg:h-[78vh]">
+                <div className="flex h-[68vh] items-center justify-center text-sm text-muted sm:h-[72vh] lg:h-[78vh]">
                   Loading preview...
                 </div>
               ) : previewUrl ? (
                 <iframe
                   title={note.title}
                   src={previewUrl}
-                  className="h-[72vh] w-full lg:h-[78vh]"
+                  className="h-[68vh] w-full sm:h-[72vh] lg:h-[78vh]"
                 />
               ) : (
-                <div className="flex h-[72vh] items-center justify-center text-sm text-muted lg:h-[78vh]">
+                <div className="flex h-[68vh] items-center justify-center text-sm text-muted sm:h-[72vh] lg:h-[78vh]">
                   {previewError || 'Preview unavailable for this note.'}
                 </div>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={onDownload} disabled={downloading} className="btn gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button type="button" onClick={onDownload} disabled={downloading} className="btn w-full justify-center gap-2 sm:w-auto">
                 {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
                 Download PDF
               </button>
               <button
                 type="button"
                 onClick={() => onToggleBookmark(note.id)}
-                className={`btn-secondary gap-2 ${bookmarked ? 'border-primary bg-primary-soft text-primary' : ''}`}
+                className={`btn-secondary w-full justify-center gap-2 sm:w-auto ${bookmarked ? 'border-primary bg-primary-soft text-primary' : ''}`}
               >
                 {bookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
                 {bookmarked ? 'Saved' : 'Save note'}
@@ -325,7 +325,7 @@ function PdfPreview({ note, canUseAuthenticatedPreview, onClose, onToggleBookmar
                 href={previewUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-secondary gap-2"
+                className="btn-secondary w-full justify-center gap-2 sm:w-auto"
               >
                 <ArrowRight size={14} />
                 Open in new tab
@@ -370,14 +370,14 @@ function PdfPreview({ note, canUseAuthenticatedPreview, onClose, onToggleBookmar
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-surface-elevated p-3">
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl bg-surface-elevated p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs text-muted">Your rating</p>
                   <div className="mt-1">
                     <RatingStars value={rating || 0} onChange={onRate} />
                   </div>
                 </div>
-                <div className="text-right text-xs text-muted">
+                <div className="text-left text-xs text-muted sm:text-right">
                   <p>{note.originalFilename || 'PDF document'}</p>
                   {note.fileSize ? <p className="mt-1">{formatFileSize(note.fileSize)}</p> : null}
                 </div>
@@ -772,7 +772,7 @@ export default function Notes() {
                     aria-label="Search notes"
                   />
                 </label>
-                <button type="submit" className="btn h-12 gap-2 rounded-2xl px-5">
+                <button type="submit" className="btn h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto">
                   <Search size={16} />
                   Search
                 </button>
@@ -780,7 +780,7 @@ export default function Notes() {
                   <button
                     type="button"
                     onClick={() => setShowUpload(true)}
-                    className="btn-secondary h-12 gap-2 rounded-2xl px-5"
+                    className="btn-secondary h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto"
                   >
                     <Upload size={16} />
                     Upload Notes
@@ -847,7 +847,7 @@ export default function Notes() {
       </section>
 
       <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-xl font-bold text-foreground">Recommended For You</h2>
             <p className="text-sm text-muted">
@@ -913,7 +913,7 @@ export default function Notes() {
           <button
             type="button"
             onClick={() => setShowBookmarked(v => !v)}
-            className={`btn-secondary gap-2 ${showBookmarked ? 'border-primary bg-primary-soft text-primary' : ''}`}
+            className={`btn-secondary w-full gap-2 sm:w-auto ${showBookmarked ? 'border-primary bg-primary-soft text-primary' : ''}`}
           >
             {showBookmarked ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
             {showBookmarked ? 'Showing saved' : 'Show saved only'}
@@ -1016,7 +1016,7 @@ export default function Notes() {
               )}
             </div>
 
-            <button type="button" onClick={() => setShowFilters(v => !v)} className="btn-secondary gap-2">
+            <button type="button" onClick={() => setShowFilters(v => !v)} className="btn-secondary w-full justify-center gap-2 sm:w-auto">
               <Filter size={14} />
               Filters
               {activeCount > 0 && (
@@ -1026,7 +1026,7 @@ export default function Notes() {
               )}
             </button>
 
-            <button type="button" onClick={clearFilters} className="btn-secondary gap-2">
+            <button type="button" onClick={clearFilters} className="btn-secondary w-full justify-center gap-2 sm:w-auto">
               <X size={14} />
               Reset
             </button>
@@ -1035,7 +1035,7 @@ export default function Notes() {
 
         {showFilters && (
           <div className="rounded-[28px] border border-border bg-surface/80 p-4 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-foreground">Filters</h3>
                 <p className="text-xs text-muted">Use chips for quick narrowing across branches, subjects, and semesters.</p>
@@ -1100,7 +1100,7 @@ export default function Notes() {
                 </div>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1.5">
                   <span className="text-xs font-medium text-muted">Subject search</span>
                   <input
@@ -1193,12 +1193,12 @@ export default function Notes() {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface-elevated px-4 py-3">
+        <div className="flex flex-col gap-2 rounded-2xl bg-surface-elevated px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 text-sm text-muted">
             <Star size={14} className="text-warning" />
             Showing {noteCards} of {totalElements} notes
           </div>
-          <div className="hidden items-center gap-2 text-xs text-muted sm:flex">
+          <div className="flex items-center gap-2 text-xs text-muted">
             <Eye size={12} />
             Preview before downloading
           </div>
@@ -1258,12 +1258,12 @@ export default function Notes() {
             }
             action={
               showBookmarked ? (
-                <button type="button" onClick={() => setShowBookmarked(false)} className="btn-secondary gap-2">
+                <button type="button" onClick={() => setShowBookmarked(false)} className="btn-secondary w-full justify-center gap-2 sm:w-auto">
                   <BookOpen size={14} />
                   Browse all notes
                 </button>
               ) : activeCount > 0 ? (
-                <button type="button" onClick={clearFilters} className="btn-secondary gap-2">
+                <button type="button" onClick={clearFilters} className="btn-secondary w-full justify-center gap-2 sm:w-auto">
                   <X size={14} />
                   Clear filters
                 </button>
@@ -1434,18 +1434,18 @@ export default function Notes() {
             Your note will be reviewed by admins before it appears publicly.
           </div>
 
-          <div className="flex justify-end gap-3 pt-1">
+          <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={() => {
                 setShowUpload(false)
                 setUploadMsg({ type: '', text: '' })
               }}
-              className="btn-secondary"
+              className="btn-secondary w-full justify-center sm:w-auto"
             >
               Cancel
             </button>
-            <button type="submit" disabled={uploading || !file} className="btn gap-1.5">
+            <button type="submit" disabled={uploading || !file} className="btn w-full justify-center gap-1.5 sm:w-auto">
               {uploading ? (
                 <>
                   <Loader2 size={14} className="animate-spin" />

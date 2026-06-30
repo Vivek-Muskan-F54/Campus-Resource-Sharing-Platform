@@ -154,7 +154,7 @@ class DashboardAggregationServiceImplTest {
     }
 
     private void stubCommon(User user) {
-        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(user));
     }
 
     private void stubRecommendations() {

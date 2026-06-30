@@ -75,7 +75,7 @@ class AuthServiceImplTest {
     void register_createsUserAndSendsVerificationEmail() {
         RegisterRequest request = new RegisterRequest("  Student One  ", "Student@Campus.edu", PASSWORD, "  CS/001  ");
 
-        when(users.existsByEmail(NORMALIZED_EMAIL)).thenReturn(false);
+        when(users.existsByEmailIgnoreCase(NORMALIZED_EMAIL)).thenReturn(false);
         when(passwordEncoder.encode(PASSWORD)).thenReturn("encoded-password");
         when(users.save(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);
@@ -89,7 +89,7 @@ class AuthServiceImplTest {
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         ArgumentCaptor<AuthToken> tokenCaptor = ArgumentCaptor.forClass(AuthToken.class);
-        verify(users).existsByEmail(NORMALIZED_EMAIL);
+        verify(users).existsByEmailIgnoreCase(NORMALIZED_EMAIL);
         verify(users).save(userCaptor.capture());
         verify(authMailService).sendVerificationEmail(eq(userCaptor.getValue()), contains("/verify-email?token="));
         verify(authTokens).save(tokenCaptor.capture());
@@ -114,7 +114,7 @@ class AuthServiceImplTest {
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(mock(Authentication.class));
-        when(users.findByEmail(NORMALIZED_EMAIL)).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(NORMALIZED_EMAIL)).thenReturn(Optional.of(user));
         when(userDetailsService.loadUserByUsername(NORMALIZED_EMAIL)).thenReturn(userDetails);
         when(jwtUtil.generateAccessToken(userDetails)).thenReturn(ACCESS_TOKEN);
         when(jwtUtil.generateRefreshToken(userDetails)).thenReturn(REFRESH_TOKEN);

@@ -18,7 +18,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +47,53 @@ public class ChatServiceImpl implements ChatService {
                 other.getId(),
                 other.getName(),
                 page.map(this::toResponse).getContent());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ConversationSummaryResponse> conversations(String email) {
+        User me = findUser(email);
+        List<Message> messagesForUser = messages.findAllConversationMessagesForUser(me.getId());
+        if (messagesForUser.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, ConversationSummaryBuilder> summaries = new LinkedHashMap<>();
+        for (Message message : messagesForUser) {
+            Long otherUserId = message.getSender().getId().equals(me.getId())
+                    ? message.getRecipient().getId()
+                    : message.getSender().getId();
+            ConversationSummaryBuilder builder = summaries.computeIfAbsent(otherUserId,
+                    id -> new ConversationSummaryBuilder(
+                            id,
+                            message.getSender().getId().equals(me.getId()) ? message.getRecipient() : message.getSender()));
+            if (builder.lastMessage == null) {
+                builder.lastMessage = message;
+            }
+            if (message.getRecipient().getId().equals(me.getId()) && !message.isReadFlag()) {
+                builder.unreadCount += 1;
+            }
+        }
+
+        List<ConversationSummaryResponse> result = new ArrayList<>();
+        for (ConversationSummaryBuilder builder : summaries.values()) {
+            Message latest = builder.lastMessage;
+            if (latest == null) {
+                continue;
+            }
+            result.add(new ConversationSummaryResponse(
+                    builder.otherUser.getId(),
+                    builder.otherUser.getEmail(),
+                    builder.otherUser.getName(),
+                    latest.getSender().getId(),
+                    latest.getContent(),
+                    latest.getProduct() == null ? null : latest.getProduct().getId(),
+                    latest.getProduct() == null ? null : latest.getProduct().getTitle(),
+                    presenceService.isOnline(builder.otherUser.getId()),
+                    builder.unreadCount,
+                    latest.getCreatedAt()));
+        }
+        return result;
     }
 
     @Override
@@ -106,5 +158,17 @@ public class ChatServiceImpl implements ChatService {
                 message.isReadFlag(),
                 message.getReadAt(),
                 message.getCreatedAt());
+    }
+
+    private static final class ConversationSummaryBuilder {
+        private final Long otherUserId;
+        private final User otherUser;
+        private Message lastMessage;
+        private long unreadCount;
+
+        private ConversationSummaryBuilder(Long otherUserId, User otherUser) {
+            this.otherUserId = otherUserId;
+            this.otherUser = otherUser;
+        }
     }
 }

@@ -1,7 +1,7 @@
 export function SkeletonCard() {
   return (
     <div className="card overflow-hidden p-0 animate-pulse">
-      <div className="skeleton h-44 w-full rounded-none" />
+      <div className="skeleton h-36 w-full rounded-none sm:h-44" />
       <div className="space-y-3 p-4">
         <div className="skeleton h-4 w-3/4 rounded-full" />
         <div className="skeleton h-3 w-1/2 rounded-full" />
@@ -18,13 +18,13 @@ export function SkeletonCard() {
 
 export function SkeletonRow() {
   return (
-    <div className="card flex items-center gap-4 animate-pulse">
+    <div className="card flex flex-col items-start gap-4 sm:flex-row sm:items-center animate-pulse">
       <div className="skeleton h-10 w-10 rounded-full flex-shrink-0" />
-      <div className="flex-1 space-y-2">
+      <div className="min-w-0 flex-1 space-y-2">
         <div className="skeleton h-4 w-1/3 rounded-full" />
         <div className="skeleton h-3 w-1/2 rounded-full" />
       </div>
-      <div className="skeleton h-8 w-20 rounded-2xl" />
+      <div className="skeleton h-8 w-full rounded-2xl sm:w-20" />
     </div>
   )
 }

@@ -33,6 +33,19 @@ public final class ChatDtos {
             List<MessageResponse> messages) {
     }
 
+    public record ConversationSummaryResponse(
+            Long otherUserId,
+            String otherUserEmail,
+            String otherUserName,
+            Long lastSenderId,
+            String lastMessage,
+            Long productId,
+            String productTitle,
+            boolean online,
+            long unreadCount,
+            Instant lastMessageAt) {
+    }
+
     public record MarkReadRequest(@NotNull Long otherUserId) {
     }
 

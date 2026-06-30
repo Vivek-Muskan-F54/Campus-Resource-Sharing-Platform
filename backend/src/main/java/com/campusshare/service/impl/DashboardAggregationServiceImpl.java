@@ -244,7 +244,7 @@ public class DashboardAggregationServiceImpl implements DashboardAggregationServ
         if (email == null || email.isBlank()) {
             return null;
         }
-        return users.findByEmail(normalizeEmail(email))
+        return users.findByEmailIgnoreCase(normalizeEmail(email))
                 .orElse(null);
     }
 

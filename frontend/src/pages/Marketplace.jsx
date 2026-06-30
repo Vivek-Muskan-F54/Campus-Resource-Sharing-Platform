@@ -306,17 +306,17 @@ export default function Marketplace() {
 
             <div className="flex flex-col gap-3 sm:flex-row">
               {user ? (
-                <Link to="/create" className="btn h-12 gap-2 rounded-2xl px-5">
+                <Link to="/create" className="btn h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto">
                   List an item
                   <ArrowRight size={16} />
                 </Link>
               ) : (
-                <Link to="/register" className="btn h-12 gap-2 rounded-2xl px-5">
+                <Link to="/register" className="btn h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto">
                   Get started
                   <ArrowRight size={16} />
                 </Link>
               )}
-              <a href="#featured" className="btn-secondary h-12 gap-2 rounded-2xl px-5">
+              <a href="#featured" className="btn-secondary h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto">
                 Explore featured
                 <Search size={16} />
               </a>
@@ -568,11 +568,11 @@ export default function Marketplace() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link to={user ? '/create' : '/register'} className="btn h-12 gap-2 rounded-2xl px-5">
+            <Link to={user ? '/create' : '/register'} className="btn h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto">
               {user ? 'Create a listing' : 'Get started'}
               <ArrowRight size={16} />
             </Link>
-            <Link to="/notes" className="btn-secondary h-12 gap-2 rounded-2xl px-5">
+            <Link to="/notes" className="btn-secondary h-12 w-full gap-2 rounded-2xl px-5 sm:w-auto">
               Browse notes
             </Link>
           </div>

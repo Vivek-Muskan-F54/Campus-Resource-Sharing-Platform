@@ -84,6 +84,7 @@ export const adminApi = {
 export const chatApi = {
   history: (otherUserId, params) => api.get(`/chat/${otherUserId}`, { params }),
   online: () => api.get('/chat/online'),
+  conversations: () => api.get('/chat/conversations'),
   markRead: otherUserId => api.post(`/chat/${otherUserId}/read`),
 }
 

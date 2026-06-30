@@ -33,6 +33,11 @@ public class ChatController {
         return chatService.onlineUsers();
     }
 
+    @GetMapping("/conversations")
+    public List<ConversationSummaryResponse> conversations(Authentication authentication) {
+        return chatService.conversations(authentication.getName());
+    }
+
     @PostMapping("/{otherUserId}/read")
     public int markRead(Authentication authentication, @PathVariable Long otherUserId) {
         return chatService.markConversationRead(authentication.getName(), otherUserId);

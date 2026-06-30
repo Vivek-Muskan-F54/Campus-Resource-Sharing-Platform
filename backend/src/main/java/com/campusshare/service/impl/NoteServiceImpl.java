@@ -63,7 +63,7 @@ public class NoteServiceImpl implements NoteService {
     public Page<NoteResponse> adminSearch(String query, String branch, Integer semester,
                                           String subject, ModerationStatus status,
                                           Pageable pageable) {
-        return notes.search(blank(query), blank(branch), semester, blank(subject),
+        return notes.search(null, blank(query), blank(branch), semester, blank(subject),
                         status, pageable)
                 .map(this::toResponse);
     }

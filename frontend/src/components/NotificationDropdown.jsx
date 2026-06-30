@@ -50,7 +50,7 @@ export default function NotificationDropdown() {
       </button>
 
       {open && (
-        <div className="modal-surface absolute right-0 top-full z-50 mt-2 w-80 animate-slide-up overflow-hidden">
+        <div className="modal-surface absolute right-0 top-full z-50 mt-2 w-[calc(100vw-1rem)] max-w-80 animate-slide-up overflow-hidden sm:w-80">
           <div className="flex items-center justify-between border-b border-border bg-surface-elevated/70 px-4 py-3">
             <h3 className="font-semibold tracking-tight text-foreground">Notifications</h3>
             {unreadCount > 0 && (

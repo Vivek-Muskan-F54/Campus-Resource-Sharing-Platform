@@ -37,7 +37,7 @@ function LeaderboardSection({ title, description, items, emptyIcon: Icon }) {
                 index === 0 ? 'border-primary/20 bg-primary-soft/40' : 'border-border bg-surface'
               }`}
             >
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${
                   variant === 'emerald' ? 'bg-success-soft text-success' :
                   variant === 'amber' ? 'bg-warning-soft text-warning' :
@@ -53,7 +53,7 @@ function LeaderboardSection({ title, description, items, emptyIcon: Icon }) {
                   </div>
                   <p className="mt-1 text-sm text-muted">{item.level}</p>
                 </div>
-                <div className="text-right">
+                <div className="flex flex-col items-start gap-0 sm:items-end sm:text-right">
                   <p className="text-2xl font-bold text-foreground">{item.metric}</p>
                   <p className="text-xs uppercase tracking-wide text-muted">
                     {variant === 'amber' ? 'Sales' : variant === 'emerald' ? 'Uploads' : 'Score'}

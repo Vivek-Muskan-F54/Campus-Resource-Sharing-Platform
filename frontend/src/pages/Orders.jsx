@@ -28,7 +28,7 @@ function OrderProgress({ status }) {
   const current = STATUS_STEPS[status] ?? 0
 
   return (
-    <div className="mt-4 flex items-center gap-0">
+    <div className="mt-4 overflow-x-auto pb-1">
       {steps.map((step, i) => (
         <div key={step} className="flex flex-1 items-center last:flex-none">
           <div className="flex flex-col items-center">
@@ -188,7 +188,7 @@ export default function Orders() {
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0">
                     <div className="mb-1 flex flex-wrap items-center gap-2">
                       <h3 className="truncate font-semibold text-foreground">
                         {order.product?.title || 'Unknown Product'}
@@ -214,10 +214,10 @@ export default function Orders() {
                     )}
                   </div>
 
-                  <div className="flex flex-shrink-0 flex-wrap items-center gap-2">
+                  <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
                     {config && (
                       <button
-                        className={`${config.class} text-sm`}
+                        className={`${config.class} w-full justify-center text-sm sm:w-auto`}
                         disabled={isUpdating}
                         onClick={() => updateStatus(order.id, config.action)}
                       >
@@ -233,7 +233,7 @@ export default function Orders() {
                     )}
 
                     {order.status === 'READY_FOR_HANDOVER' && qrUrls[order.id] && (
-                      <div className="rounded-3xl border border-dashed border-primary/20 bg-primary-soft p-3 text-center">
+                      <div className="w-full rounded-3xl border border-dashed border-primary/20 bg-primary-soft p-3 text-center sm:max-w-xs lg:max-w-none">
                         <p className="mb-2 flex items-center justify-center gap-1 text-xs font-medium text-muted">
                           <QrCode size={12} />
                           Scan to complete handover
@@ -247,14 +247,14 @@ export default function Orders() {
                     )}
 
                     {order.status === 'COMPLETED' && (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-success">
+                      <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-success sm:justify-start lg:justify-end">
                         <CheckCircle size={16} />
                         Completed
                       </div>
                     )}
 
                     {order.status === 'REJECTED' && (
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-danger">
+                      <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-danger sm:justify-start lg:justify-end">
                         <XCircle size={16} />
                         Rejected
                       </div>

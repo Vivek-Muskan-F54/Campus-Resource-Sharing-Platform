@@ -155,7 +155,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private User findUser(String email) {
-        return users.findByEmail(normalize(email))
+        return users.findByEmailIgnoreCase(normalize(email))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 

@@ -1,6 +1,7 @@
 package com.campusshare.service;
 
 import com.campusshare.dto.ChatDtos.ConversationResponse;
+import com.campusshare.dto.ChatDtos.ConversationSummaryResponse;
 import com.campusshare.dto.ChatDtos.MessageResponse;
 import com.campusshare.dto.ChatDtos.OnlineUserResponse;
 import com.campusshare.dto.ChatDtos.SendMessageRequest;
@@ -11,6 +12,8 @@ import java.util.List;
 
 public interface ChatService {
     ConversationResponse history(String email, Long otherUserId, Pageable pageable);
+
+    List<ConversationSummaryResponse> conversations(String email);
 
     List<OnlineUserResponse> onlineUsers();
 

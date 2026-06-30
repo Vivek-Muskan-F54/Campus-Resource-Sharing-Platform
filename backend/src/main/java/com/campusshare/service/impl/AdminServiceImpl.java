@@ -165,7 +165,7 @@ public class AdminServiceImpl implements AdminService {
             String remarks) {
         Verification verification = verifications.findById(verificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Verification not found"));
-        User admin = users.findByEmail(adminEmail)
+        User admin = users.findByEmailIgnoreCase(adminEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
 
         verification.setStatus(status);

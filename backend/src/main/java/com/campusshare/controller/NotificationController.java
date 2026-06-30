@@ -16,6 +16,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Locale;
+
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -31,6 +33,9 @@ public class NotificationController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         Long userId = resolveUserId(authentication);
+        if (userId == null) {
+            return Page.empty(pageable);
+        }
         return repo.findByRecipientIdOrderByCreatedAtDesc(userId, pageable)
                 .map(this::toResponse);
     }
@@ -39,6 +44,9 @@ public class NotificationController {
     @GetMapping("/unread-count")
     public UnreadCountResponse unreadCount(Authentication authentication) {
         Long userId = resolveUserId(authentication);
+        if (userId == null) {
+            return new UnreadCountResponse(0L);
+        }
         return new UnreadCountResponse(repo.countByRecipientIdAndReadFlagFalse(userId));
     }
 
@@ -77,8 +85,13 @@ public class NotificationController {
     }
 
     private Long resolveUserId(Authentication authentication) {
-        User user = users.findByEmail(authentication.getName())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return user.getId();
+        if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+            return null;
+        }
+
+        String email = authentication.getName().trim().toLowerCase(Locale.ROOT);
+        return users.findByEmailIgnoreCase(email)
+                .map(User::getId)
+                .orElse(null);
     }
 }

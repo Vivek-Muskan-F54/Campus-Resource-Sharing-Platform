@@ -69,7 +69,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
-        if (users.existsByEmail(email)) {
+        if (users.existsByEmailIgnoreCase(email)) {
             throw new BadRequestException("Email is already registered");
         }
 
@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(LoginRequest request) {
         String email = normalizeEmail(request.email());
-        User user = users.findByEmail(email)
+        User user = users.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new BadRequestException("Invalid email or password"));
 
         if (!isEmailVerified(user)) {
@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public MeResponse me(String email) {
-        User user = users.findByEmail(normalizeEmail(email))
+        User user = users.findByEmailIgnoreCase(normalizeEmail(email))
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Set<String> roles = user.getRoles().stream()
@@ -184,7 +184,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void resendVerification(ResendVerificationRequest request) {
         String email = normalizeEmail(request.email());
-        users.findByEmail(email).ifPresent(user -> {
+        users.findByEmailIgnoreCase(email).ifPresent(user -> {
             if (isEmailVerified(user)) {
                 return;
             }
@@ -196,7 +196,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void forgotPassword(ForgotPasswordRequest request) {
         String email = normalizeEmail(request.email());
-        users.findByEmail(email).ifPresent(user -> {
+        users.findByEmailIgnoreCase(email).ifPresent(user -> {
             if (!user.isEnabled()) {
                 return;
             }

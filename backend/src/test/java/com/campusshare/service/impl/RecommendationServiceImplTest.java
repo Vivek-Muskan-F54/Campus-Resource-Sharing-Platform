@@ -172,7 +172,7 @@ class RecommendationServiceImplTest {
     }
 
     private void stubUser(User user) {
-        when(users.findByEmail(EMAIL)).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(user));
     }
 
     private void stubNoteCounts(Map<ActivityType, List<ActivityEntityCountView>> counts) {

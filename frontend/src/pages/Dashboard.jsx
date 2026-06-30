@@ -46,7 +46,7 @@ function SectionShell({ eyebrow, title, description, action, children }) {
             <Sparkles size={10} />
             {eyebrow}
           </Badge>
-          <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+          <h2 className="text-xl font-bold text-foreground sm:text-2xl">{title}</h2>
           <p className="text-sm leading-6 text-muted">{description}</p>
         </div>
         {action}
@@ -68,7 +68,7 @@ function StatCard({ label, value, icon: Icon, tone = 'brand' }) {
         <Icon size={20} />
       </div>
       <div>
-        <p className="text-2xl font-bold text-foreground">{value}</p>
+        <p className="text-xl font-bold text-foreground sm:text-2xl">{value}</p>
         <p className="text-sm text-muted">{label}</p>
       </div>
     </div>
@@ -81,14 +81,14 @@ function NotificationItem({ item }) {
     <div className={`rounded-3xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md ${
       item.readFlag ? 'border-border bg-surface' : 'border-primary/20 bg-primary-soft/40'
     }`}>
-      <div className="flex items-start gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
         <div className={`mt-0.5 rounded-2xl p-2 ${
           item.readFlag ? 'bg-surface-elevated text-muted' : 'bg-primary text-white'
         }`}>
           <Bell size={15} />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
             <p className="truncate font-semibold text-foreground">{item.message}</p>
             {!item.readFlag && <Badge variant="brand">Unread</Badge>}
           </div>
