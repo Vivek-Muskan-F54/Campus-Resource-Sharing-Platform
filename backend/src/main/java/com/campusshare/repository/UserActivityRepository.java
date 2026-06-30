@@ -61,23 +61,32 @@ public interface UserActivityRepository extends JpaRepository<UserActivity, Long
 
     @Query(
             value = """
-                    select a.entityId
-                    from UserActivity a
-                    where a.user.id = :userId
-                      and a.entityType = :entityType
-                      and a.activityType = :activityType
-                      and a.entityId is not null
-                    group by a.entityId
-                    order by max(a.createdAt) desc
+                    select ranked.entity_id
+                    from (
+                        select a.entity_id,
+                               max(a.created_at) as last_activity_at
+                        from user_activity a
+                        where a.user_id = :userId
+                          and a.entity_type = :entityType
+                          and a.activity_type = :activityType
+                          and a.entity_id is not null
+                        group by a.entity_id
+                    ) ranked
+                    order by ranked.last_activity_at desc, ranked.entity_id desc
                     """,
             countQuery = """
-                    select count(distinct a.entityId)
-                    from UserActivity a
-                    where a.user.id = :userId
-                      and a.entityType = :entityType
-                      and a.activityType = :activityType
-                      and a.entityId is not null
-                    """)
+                    select count(*)
+                    from (
+                        select a.entity_id
+                        from user_activity a
+                        where a.user_id = :userId
+                          and a.entity_type = :entityType
+                          and a.activity_type = :activityType
+                          and a.entity_id is not null
+                        group by a.entity_id
+                    ) ranked
+                    """,
+            nativeQuery = true)
     Page<Long> findRecentDistinctEntityIdsByUserIdAndActivityTypeAndEntityType(
             @Param("userId") Long userId,
             @Param("activityType") ActivityType activityType,

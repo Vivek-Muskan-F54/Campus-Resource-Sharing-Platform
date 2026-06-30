@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
 import java.util.List;
@@ -153,6 +154,27 @@ class DashboardAggregationServiceImplTest {
         assertThat(response.generatedAt()).isNotNull();
     }
 
+    @Test
+    @DisplayName("empty activity returns an empty personalized dashboard without failing")
+    void personalized_emptyActivityReturnsEmptyDashboard() {
+        User user = user(11L);
+
+        stubCommon(user);
+        stubRecommendations();
+        stubRecentNotes();
+        stubNotifications();
+        stubTrendingEmpty();
+
+        PersonalizedDashboardResponse response = dashboardService.personalized(EMAIL, PageRequest.of(0, 4));
+
+        assertThat(response.recommendedNotes().content()).isEmpty();
+        assertThat(response.recommendedProducts().content()).isEmpty();
+        assertThat(response.recentDownloads().content()).isEmpty();
+        assertThat(response.bookmarkedNotes().content()).isEmpty();
+        assertThat(response.trendingNotes().content()).isEmpty();
+        assertThat(response.recentNotifications().content()).isEmpty();
+    }
+
     private void stubCommon(User user) {
         when(users.findByEmailIgnoreCase(EMAIL)).thenReturn(Optional.of(user));
     }
@@ -165,14 +187,14 @@ class DashboardAggregationServiceImplTest {
     }
 
     private void stubRecentNotes() {
-        when(activities.findRecentDistinctEntityIdsByUserIdAndActivityTypeAndEntityType(11L, ActivityType.DOWNLOAD_NOTE, ActivityEntityType.NOTE, PageRequest.of(0, 6)))
+        when(activities.findRecentDistinctEntityIdsByUserIdAndActivityTypeAndEntityType(eq(11L), eq(ActivityType.DOWNLOAD_NOTE), eq(ActivityEntityType.NOTE), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 6), 0));
-        when(activities.findRecentDistinctEntityIdsByUserIdAndActivityTypeAndEntityType(11L, ActivityType.BOOKMARK_NOTE, ActivityEntityType.NOTE, PageRequest.of(0, 6)))
+        when(activities.findRecentDistinctEntityIdsByUserIdAndActivityTypeAndEntityType(eq(11L), eq(ActivityType.BOOKMARK_NOTE), eq(ActivityEntityType.NOTE), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 6), 0));
     }
 
     private void stubNotifications() {
-        when(notifications.findByRecipientIdOrderByCreatedAtDesc(11L, PageRequest.of(0, 6)))
+        when(notifications.findByRecipientIdOrderByCreatedAtDesc(eq(11L), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 6), 0));
     }
 

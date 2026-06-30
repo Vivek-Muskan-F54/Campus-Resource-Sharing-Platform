@@ -28,6 +28,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.Instant;
 import java.util.Collection;
@@ -59,7 +60,7 @@ public class DashboardAggregationServiceImpl implements DashboardAggregationServ
     private final NotificationRepository notifications;
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, propagation = Propagation.NOT_SUPPORTED)
     public PersonalizedDashboardResponse personalized(String email, Pageable pageable) {
         User user = findUser(email);
         if (user == null) {

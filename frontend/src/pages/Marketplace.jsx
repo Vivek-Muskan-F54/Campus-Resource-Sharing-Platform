@@ -291,14 +291,14 @@ export default function Marketplace() {
 
   return (
     <div className="space-y-20 pb-10">
-      <section className="hero-panel px-5 py-8 sm:px-8 lg:px-10">
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
-          <div className="space-y-6">
+      <section className="hero-panel px-5 py-6 sm:px-8 sm:py-7 lg:px-10 lg:py-6">
+        <div className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr] lg:items-center xl:gap-8">
+          <div className="space-y-5">
             <Badge variant="brand" className="gap-1.5">
               <Sparkles size={10} />
               CampusShare platform
             </Badge>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h1 className="hero-title max-w-3xl">
                 A premium campus marketplace for sharing, learning, and moving faster together.
               </h1>
@@ -325,7 +325,7 @@ export default function Marketplace() {
               </a>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
               <HeroStat label="Active listings" value={formatCount(heroStats.listings)} icon={Package} />
               <HeroStat label="Study notes" value={formatCount(heroStats.notes)} icon={BookOpen} />
               <HeroStat label="Categories" value={formatCount(heroStats.categories)} icon={Layers3} />
@@ -333,8 +333,8 @@ export default function Marketplace() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="card">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:gap-4">
+            <div className="card p-4 sm:p-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-muted">Live snapshot</p>
@@ -344,7 +344,7 @@ export default function Marketplace() {
                   <Sparkles size={18} />
                 </div>
               </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 <div className="rounded-2xl border border-border bg-surface-elevated p-4">
                   <p className="text-xs uppercase tracking-[0.16em] text-muted">Marketplace activity</p>
                   <p className="mt-2 text-2xl font-bold">{formatCount(heroStats.listings)}</p>
@@ -358,7 +358,7 @@ export default function Marketplace() {
               </div>
             </div>
 
-            <div className="card">
+            <div className="card p-4 sm:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Why it works</p>
               <ul className="mt-4 space-y-3 text-sm text-muted">
                 <li className="flex items-center gap-2">
