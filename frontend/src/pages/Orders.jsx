@@ -83,7 +83,7 @@ export default function Orders() {
 
   useEffect(() => {
     load()
-  }, [])
+  }, [load])
 
   useEffect(() => {
     const objectUrls = []
