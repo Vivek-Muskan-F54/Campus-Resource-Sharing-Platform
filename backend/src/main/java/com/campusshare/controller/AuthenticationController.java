@@ -18,9 +18,12 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Void>> register(@Valid @RequestBody RegisterRequest request) {
-        authService.register(request);
+        boolean emailSent = authService.register(request);
+        String message = emailSent
+                ? "Registration successful. Check your email to verify your account."
+                : "Registration successful, but the verification email could not be delivered. Please request a resend later.";
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.ok("Registration successful. Check your email to verify your account."));
+                .body(ApiResponse.ok(message));
     }
 
     @PostMapping("/login")

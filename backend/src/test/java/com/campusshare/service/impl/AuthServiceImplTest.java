@@ -84,8 +84,9 @@ class AuthServiceImplTest {
         });
         when(authTokens.revokeAllByUserIdAndPurpose(anyLong(), eq(AuthTokenPurpose.EMAIL_VERIFICATION))).thenReturn(0);
         when(authTokens.save(any(AuthToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(authMailService.sendVerificationEmail(any(User.class), anyString())).thenReturn(true);
 
-        authService.register(request);
+        boolean emailSent = authService.register(request);
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         ArgumentCaptor<AuthToken> tokenCaptor = ArgumentCaptor.forClass(AuthToken.class);
@@ -93,6 +94,7 @@ class AuthServiceImplTest {
         verify(users).save(userCaptor.capture());
         verify(authMailService).sendVerificationEmail(eq(userCaptor.getValue()), contains("/verify-email?token="));
         verify(authTokens).save(tokenCaptor.capture());
+        assertThat(emailSent).isTrue();
 
         User savedUser = userCaptor.getValue();
         assertThat(savedUser.getName()).isEqualTo("Student One");
@@ -103,6 +105,29 @@ class AuthServiceImplTest {
         assertThat(tokenCaptor.getValue().getPurpose()).isEqualTo(AuthTokenPurpose.EMAIL_VERIFICATION);
         assertThat(tokenCaptor.getValue().getUser().getId()).isEqualTo(11L);
         assertThat(tokenCaptor.getValue().getTokenHash()).hasSize(64);
+    }
+
+    @Test
+    @DisplayName("register still succeeds when verification email delivery fails")
+    void register_continuesWhenVerificationEmailFails() {
+        RegisterRequest request = new RegisterRequest("Student Two", "student2@campus.edu", PASSWORD, "CS/002");
+
+        when(users.existsByEmailIgnoreCase("student2@campus.edu")).thenReturn(false);
+        when(passwordEncoder.encode(PASSWORD)).thenReturn("encoded-password");
+        when(users.save(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            user.setId(12L);
+            return user;
+        });
+        when(authTokens.revokeAllByUserIdAndPurpose(anyLong(), eq(AuthTokenPurpose.EMAIL_VERIFICATION))).thenReturn(0);
+        when(authTokens.save(any(AuthToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(authMailService.sendVerificationEmail(any(User.class), anyString())).thenReturn(false);
+
+        boolean emailSent = authService.register(request);
+
+        verify(users).save(any(User.class));
+        verify(authMailService).sendVerificationEmail(any(User.class), contains("/verify-email?token="));
+        assertThat(emailSent).isFalse();
     }
 
     @Test

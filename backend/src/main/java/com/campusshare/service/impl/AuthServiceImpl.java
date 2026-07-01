@@ -67,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
     private long passwordResetExpirationMs;
 
     @Override
-    public void register(RegisterRequest request) {
+    public boolean register(RegisterRequest request) {
         String email = normalizeEmail(request.email());
         if (users.existsByEmailIgnoreCase(email)) {
             throw new BadRequestException("Email is already registered");
@@ -82,8 +82,9 @@ public class AuthServiceImpl implements AuthService {
 
         User saved = users.save(user);
         String verificationToken = issueToken(saved, AuthTokenPurpose.EMAIL_VERIFICATION, emailVerificationExpirationMs);
-        authMailService.sendVerificationEmail(saved, buildFrontendUrl("/verify-email", verificationToken));
+        boolean emailSent = authMailService.sendVerificationEmail(saved, buildFrontendUrl("/verify-email", verificationToken));
         log.info("event=auth_registration user_id={}", saved.getId());
+        return emailSent;
     }
 
     @Override
